@@ -11,7 +11,9 @@ import 'registration_screen.dart';
 import 'two_factor_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({super.key, this.showBack = true});
+
+  final bool showBack;
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -67,7 +69,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const ScreenHeader(title: 'Log In', showBack: true),
+            ScreenHeader(title: 'Log In', showBack: widget.showBack),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -122,7 +124,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       const SizedBox(height: 12),
                       TextButton(
-                        onPressed: () => Navigator.of(context).pushReplacement(
+                        onPressed: () => Navigator.of(context).push(
                           MaterialPageRoute(
                               builder: (_) => const RegistrationScreen()),
                         ),
