@@ -1,18 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/format.dart';
+import '../../core/providers/finance_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/cards.dart';
 import '../home/dashboard_screen.dart';
 
-class AccessSuccessScreen extends StatelessWidget {
-  const AccessSuccessScreen({super.key, required this.amount});
-
-  final double amount;
+class AccessSuccessScreen extends ConsumerWidget {
+  const AccessSuccessScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final formatted = amount.round();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final access = ref.watch(accessControllerProvider);
+    final advance = access.advance;
+    if (advance == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: QcashColors.green)),
+      );
+    }
+    final recommended = access.assessment?.recommendedAdvanceAmountMinor ?? 0;
+    final diff = recommended - advance.principalAmountMinor;
+    final remaining = diff < 0 ? 0 : diff;
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -45,11 +56,19 @@ class AccessSuccessScreen extends StatelessWidget {
               const SizedBox(height: 24),
               InfoCard(
                 children: [
-                  KeyValueRow(label: 'Amount Accessed', value: 'KES $formatted'),
-                  const KeyValueRow(label: 'Transaction Ref', value: 'QC-00291'),
-                  const KeyValueRow(label: 'Date', value: '3 Sep 2026'),
-                  const KeyValueRow(
-                      label: 'Updated Available Balance', value: 'KES 20,000'),
+                  KeyValueRow(
+                    label: 'Amount Accessed',
+                    value: formatMinor(advance.principalAmountMinor),
+                  ),
+                  KeyValueRow(label: 'Transaction Ref', value: advance.publicId),
+                  KeyValueRow(
+                    label: 'Date',
+                    value: formatDate(advance.disbursedAt ?? advance.createdAt ?? DateTime.now()),
+                  ),
+                  KeyValueRow(
+                    label: 'Updated Available Balance',
+                    value: formatMinor(remaining),
+                  ),
                 ],
               ),
               const Spacer(),

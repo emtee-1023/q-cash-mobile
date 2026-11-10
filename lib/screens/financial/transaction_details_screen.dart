@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 
+import '../../core/format.dart';
+import '../../core/models/transaction.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/cards.dart';
 import '../../widgets/screen_header.dart';
 
 class TransactionDetailsScreen extends StatelessWidget {
-  const TransactionDetailsScreen({super.key});
+  const TransactionDetailsScreen({super.key, required this.transaction});
+
+  final Transaction transaction;
 
   @override
   Widget build(BuildContext context) {
+    final t = transaction;
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -25,20 +30,20 @@ class TransactionDetailsScreen extends StatelessWidget {
                       color: QcashColors.iconBg,
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Column(
+                    child: Column(
                       children: [
                         Text(
-                          'KES 5,000',
+                          '${t.isInflow ? '+' : '-'}${formatMinorAmount(t.amountMinor)}',
                           style: TextStyle(
                             fontSize: 30,
                             fontWeight: FontWeight.w800,
-                            color: QcashColors.navy,
+                            color: t.isInflow ? QcashColors.green : QcashColors.navy,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
-                          'Completed',
-                          style: TextStyle(
+                          t.providerStatus ?? 'Completed',
+                          style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: QcashColors.green,
@@ -48,14 +53,33 @@ class TransactionDetailsScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const InfoCard(
+                  InfoCard(
                     children: [
-                      KeyValueRow(label: 'Reference', value: 'QC-00291'),
-                      KeyValueRow(label: 'Date / Time', value: '3 Sep, 10:42'),
-                      KeyValueRow(label: 'Amount', value: 'KES 5,000'),
-                      KeyValueRow(label: 'Type', value: 'Early Access'),
-                      KeyValueRow(label: 'Status', value: 'Completed'),
-                      KeyValueRow(label: 'Related Account', value: 'Paybill 4521'),
+                      KeyValueRow(
+                        label: 'Reference',
+                        value: t.providerTransactionId,
+                      ),
+                      KeyValueRow(
+                        label: 'Date / Time',
+                        value: formatDate(t.transactionTime, withTime: true),
+                      ),
+                      KeyValueRow(
+                        label: 'Amount',
+                        value: formatMinor(t.amountMinor),
+                      ),
+                      KeyValueRow(
+                        label: 'Type',
+                        value: t.transactionType ?? (t.isInflow ? 'Income' : 'Outflow'),
+                      ),
+                      KeyValueRow(
+                        label: 'Status',
+                        value: t.providerStatus ?? 'Completed',
+                      ),
+                      KeyValueRow(
+                        label: 'Related Account',
+                        value: t.counterpartyReference ??
+                            (t.paymentAccountId != null ? 'Account ${t.paymentAccountId}' : '—'),
+                      ),
                     ],
                   ),
                 ],
