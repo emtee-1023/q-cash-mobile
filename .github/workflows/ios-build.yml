@@ -1,4 +1,3 @@
-
 name: Build Flutter iOS
 
 on:
@@ -24,7 +23,11 @@ jobs:
         run: flutter pub get
 
       - name: Build iOS without signing
-        run: flutter build ios --release --no-codesign
+        # Added --config-only to let Flutter run its script phase, 
+        # then build via xcodebuild directly to force plugin framework creation.
+        run: |
+          flutter build ios --release --no-codesign --config-only
+          xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -configuration Release -sdk iphoneos CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO clean build
 
       - name: Package application
         run: |
