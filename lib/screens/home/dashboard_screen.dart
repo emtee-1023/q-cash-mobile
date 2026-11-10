@@ -10,6 +10,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/bottom_nav.dart';
 import '../../widgets/cards.dart';
+import '../../widgets/mpesa_banner.dart';
 import '../../widgets/screen_header.dart';
 import '../access/access_revenue_screen.dart';
 import '../account/notifications_screen.dart';
@@ -112,6 +113,8 @@ class DashboardScreen extends ConsumerWidget {
                         highlightColor: QcashColors.navy,
                         icon: Icons.bolt,
                       ),
+                      const SizedBox(height: 14),
+                      const MpesaBanner(),
                       const SizedBox(height: 14),
                       Row(
                         children: [

@@ -109,9 +109,14 @@ class AuthRepository {
   }
 
   Future<String> logout() async {
-    final res = await _client.post('/auth/logout');
-    await _client.setToken(null);
-    return _message(res.data);
+    try {
+      final res = await _client.post('/auth/logout');
+      return _message(res.data);
+    } finally {
+      // Always clear the locally persisted session, even if the server call
+      // fails, so the user is never silently logged back in on restart.
+      await _client.setToken(null);
+    }
   }
 
   Future<User> user() async {

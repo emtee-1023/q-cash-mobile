@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/auth_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/screen_header.dart';
+import '../home/app_home.dart';
 import 'help_support_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -66,7 +67,10 @@ class SettingsScreen extends ConsumerWidget {
   Future<void> _logout(BuildContext context, WidgetRef ref) async {
     await ref.read(authControllerProvider.notifier).logout();
     if (context.mounted) {
-      Navigator.of(context).popUntil((route) => route.isFirst);
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const AppHome(showSplash: false)),
+        (route) => false,
+      );
     }
   }
 }

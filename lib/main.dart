@@ -23,7 +23,7 @@ class QcashApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Q Cash',
+      title: 'QCash',
       debugShowCheckedModeBanner: false,
       theme: buildQcashTheme(),
       home: const AppHome(),
