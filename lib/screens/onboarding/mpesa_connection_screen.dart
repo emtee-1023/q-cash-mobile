@@ -1,21 +1,73 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/api/api_client.dart';
+import '../../core/models/business.dart';
+import '../../core/providers/business_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_field.dart';
 import '../../widgets/cards.dart';
 import '../../widgets/screen_header.dart';
-import '../home/dashboard_screen.dart';
 
-class MpesaConnectionScreen extends StatefulWidget {
-  const MpesaConnectionScreen({super.key});
+class MpesaConnectionScreen extends ConsumerStatefulWidget {
+  const MpesaConnectionScreen({super.key, required this.business});
+
+  final Business business;
 
   @override
-  State<MpesaConnectionScreen> createState() => _MpesaConnectionScreenState();
+  ConsumerState<MpesaConnectionScreen> createState() =>
+      _MpesaConnectionScreenState();
 }
 
-class _MpesaConnectionScreenState extends State<MpesaConnectionScreen> {
-  bool _connected = false;
+class _MpesaConnectionScreenState extends ConsumerState<MpesaConnectionScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _accountNumber = TextEditingController();
+  final _accountReference = TextEditingController();
+  final _accountName = TextEditingController();
+  String? _provider = 'Safaricom';
+  String? _channelType = 'Paybill';
+  bool _busy = false;
+
+  @override
+  void dispose() {
+    _accountNumber.dispose();
+    _accountReference.dispose();
+    _accountName.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _busy = true);
+    try {
+      await ref.read(businessesProvider.notifier).addPaymentAccount(
+            widget.business.id,
+            {
+              'provider': _provider,
+              'channel_type': _channelType,
+              'account_number': _accountNumber.text.trim(),
+              if (_accountReference.text.trim().isNotEmpty)
+                'account_reference': _accountReference.text.trim(),
+              if (_accountName.text.trim().isNotEmpty)
+                'account_name': _accountName.text.trim(),
+            },
+          );
+      if (!mounted) return;
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } on ApiException catch (e) {
+      _showError(e.readable);
+    } catch (_) {
+      _showError('Could not connect your account. Please try again.');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,83 +79,59 @@ class _MpesaConnectionScreenState extends State<MpesaConnectionScreen> {
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const CalloutBox(
-                      text:
-                          'Q-Cash reads your Paybill transaction history to '
-                          'assess business revenue and eligibility.',
-                      icon: Icons.receipt_long,
-                    ),
-                    const SizedBox(height: 16),
-                    const AppTextField(
-                      label: 'Paybill Number',
-                      hint: 'e.g. 522533',
-                      keyboardType: TextInputType.number,
-                    ),
-                    const AppTextField(
-                      label: 'Business / Account Number',
-                      hint: 'Your Paybill account number',
-                    ),
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 14),
-                      decoration: BoxDecoration(
-                        color: QcashColors.iconBg,
-                        borderRadius: BorderRadius.circular(16),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const CalloutBox(
+                        text:
+                            'Q-Cash reads your Paybill transaction history to '
+                            'assess business revenue and eligibility.',
+                        icon: Icons.receipt_long,
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Connection Status',
-                            style: TextStyle(
-                                fontSize: 13, color: QcashColors.textGray),
-                          ),
-                          Row(
-                            children: [
-                              Icon(
-                                _connected
-                                    ? Icons.check_circle
-                                    : Icons.radio_button_unchecked,
-                                size: 16,
-                                color: _connected
-                                    ? QcashColors.green
-                                    : QcashColors.textGray,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                _connected ? 'Connected' : 'Not Connected',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: _connected
-                                      ? QcashColors.green
-                                      : QcashColors.textGray,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                      const SizedBox(height: 16),
+                      AppDropdownField(
+                        label: 'Provider',
+                        hint: 'Select provider',
+                        value: _provider,
+                        items: const ['Safaricom'],
+                        onChanged: (v) => setState(() => _provider = v),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    OutlineButton(
-                      label: _connected ? 'Reconnect Account' : 'Connect Account',
-                      onPressed: () => setState(() => _connected = true),
-                    ),
-                    const SizedBox(height: 12),
-                    PrimaryButton(
-                      label: 'Continue',
-                      onPressed: () => Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (_) => const DashboardScreen()),
-                        (route) => false,
+                      AppDropdownField(
+                        label: 'Channel Type',
+                        hint: 'Select channel',
+                        value: _channelType,
+                        items: const ['Paybill', 'Till'],
+                        onChanged: (v) => setState(() => _channelType = v),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
+                      AppTextField(
+                        label: 'Paybill Number',
+                        hint: 'e.g. 522533',
+                        controller: _accountNumber,
+                        keyboardType: TextInputType.number,
+                        validator: (v) =>
+                            (v == null || v.trim().isEmpty) ? 'Paybill number is required' : null,
+                      ),
+                      AppTextField(
+                        label: 'Business / Account Number',
+                        hint: 'Your Paybill account number',
+                        controller: _accountReference,
+                      ),
+                      AppTextField(
+                        label: 'Account Name (optional)',
+                        hint: 'Wanjiru General Store',
+                        controller: _accountName,
+                      ),
+                      const SizedBox(height: 8),
+                      PrimaryButton(
+                        label: 'Continue',
+                        color: QcashColors.green,
+                        onPressed: _busy ? null : _submit,
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
               ),
             ),

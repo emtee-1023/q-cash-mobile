@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/format.dart';
+import '../../core/models/advance.dart';
+import '../../core/providers/business_providers.dart';
+import '../../core/providers/finance_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/bottom_nav.dart';
 import '../../widgets/cards.dart';
@@ -10,7 +15,7 @@ import '../home/dashboard_screen.dart';
 import 'repayment_details_screen.dart';
 import 'transactions_screen.dart';
 
-class RepaymentScreen extends StatelessWidget {
+class RepaymentScreen extends ConsumerWidget {
   const RepaymentScreen({super.key});
 
   void _onNavTap(BuildContext context, int index) {
@@ -41,7 +46,26 @@ class RepaymentScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final business = ref.watch(currentBusinessProvider);
+    final advances = business == null
+        ? const <Advance>[]
+        : ref.watch(advancesProvider(business.id)).value ??
+            const <Advance>[];
+
+    final outstanding = advances.fold<int>(0, (s, a) => s + a.outstandingBalanceMinor);
+    final repaid = advances.fold<int>(0, (s, a) => s + a.amountRepaidMinor);
+    final total = outstanding + repaid;
+    final progress = total == 0 ? 0.0 : repaid / total;
+
+    DateTime? nextDue;
+    final now = DateTime.now();
+    for (final a in advances) {
+      if (a.dueAt != null && a.dueAt!.isAfter(now)) {
+        if (nextDue == null || a.dueAt!.isBefore(nextDue)) nextDue = a.dueAt;
+      }
+    }
+
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -53,14 +77,24 @@ class RepaymentScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Row(
+                    Row(
                       children: [
                         Expanded(
-                          child: StatCard(label: 'Outstanding', value: 'KES 4,000'),
+                          child: StatCard(
+                            label: 'Outstanding',
+                            value: formatMinor(outstanding),
+                            icon: Icons.receipt_long_outlined,
+                            iconColor: QcashColors.orange,
+                          ),
                         ),
-                        SizedBox(width: 12),
+                        const SizedBox(width: 12),
                         Expanded(
-                          child: StatCard(label: 'Repaid', value: 'KES 1,000'),
+                          child: StatCard(
+                            label: 'Repaid',
+                            value: formatMinor(repaid),
+                            icon: Icons.check_circle_outline,
+                            iconColor: QcashColors.green,
+                          ),
                         ),
                       ],
                     ),
@@ -68,46 +102,59 @@ class RepaymentScreen extends StatelessWidget {
                     const SectionLabel('Repayment Progress'),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: const LinearProgressIndicator(
-                        value: 0.25,
+                      child: LinearProgressIndicator(
+                        value: progress,
                         minHeight: 12,
                         backgroundColor: QcashColors.divider,
-                        valueColor: AlwaysStoppedAnimation(QcashColors.green),
+                        valueColor: const AlwaysStoppedAnimation(QcashColors.green),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      '25% repaid',
-                      style: TextStyle(
+                    Text(
+                      '${(progress * 100).round()}% repaid',
+                      style: const TextStyle(
                         fontSize: 13,
                         color: QcashColors.textGray,
                       ),
                     ),
                     const SizedBox(height: 20),
-                    const InfoCard(
+                    InfoCard(
                       children: [
                         KeyValueRow(
                           label: 'Next Expected Repayment',
-                          value: 'KES 500',
+                          value: nextDue == null ? '—' : formatDate(nextDue),
                         ),
-                        KeyValueRow(label: 'Due Date', value: '10 Sep 2026'),
+                        KeyValueRow(
+                          label: 'Active Advances',
+                          value: '${advances.length}',
+                        ),
                       ],
                     ),
                     const SizedBox(height: 24),
-                    const SectionLabel('Repayment History'),
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const RepaymentDetailsScreen(),
+                    const SectionLabel('Your Advances'),
+                    if (advances.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20),
+                        child: Text(
+                          'No advances yet. Access revenue to get started.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: QcashColors.textGray),
+                        ),
+                      )
+                    else
+                      ...advances.map(
+                        (a) => TransactionTile(
+                          title: 'Advance ${a.publicId}',
+                          subtitle: 'Due ${formatDate(a.dueAt)}',
+                          amount: formatMinorAmount(a.outstandingBalanceMinor),
+                          positive: false,
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => RepaymentDetailsScreen(advance: a),
+                            ),
+                          ),
                         ),
                       ),
-                      child: const TransactionTile(
-                        title: 'Automatic deduction',
-                        subtitle: '1 Sep 2026',
-                        amount: 'KES 1,000',
-                        positive: false,
-                      ),
-                    ),
                     const SizedBox(height: 12),
                   ],
                 ),

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/models/business.dart';
+import '../../core/providers/auth_providers.dart';
+import '../../core/providers/business_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/bottom_nav.dart';
 import '../../widgets/cards.dart';
@@ -10,7 +14,7 @@ import '../financial/transactions_screen.dart';
 import '../home/dashboard_screen.dart';
 import 'settings_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   void _onNavTap(BuildContext context, int index) {
@@ -41,7 +45,10 @@ class ProfileScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(userProvider).value;
+    final business = ref.watch(currentBusinessProvider);
+
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -53,13 +60,13 @@ class ProfileScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Center(
+                    Center(
                       child: CircleAvatar(
                         radius: 40,
                         backgroundColor: QcashColors.green,
                         child: Text(
-                          'JW',
-                          style: TextStyle(
+                          _initials(user?.name ?? ''),
+                          style: const TextStyle(
                             fontSize: 26,
                             fontWeight: FontWeight.w800,
                             color: Colors.white,
@@ -68,10 +75,10 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Center(
+                    Center(
                       child: Text(
-                        'Jane Wanjiru',
-                        style: TextStyle(
+                        user?.name ?? 'Loading…',
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
                           color: QcashColors.navy,
@@ -79,15 +86,24 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    const InfoCard(
+                    InfoCard(
                       children: [
-                        KeyValueRow(label: 'Name', value: 'Jane Wanjiru'),
-                        KeyValueRow(label: 'Phone', value: '+254 7XX XXX XXX'),
-                        KeyValueRow(label: 'Email', value: 'jane@email.com'),
+                        KeyValueRow(label: 'Name', value: user?.name ?? '—'),
                         KeyValueRow(
-                            label: 'Business Name', value: 'Wanjiru General Store'),
-                        KeyValueRow(label: 'Business Info', value: 'Retail / Nairobi'),
-                        KeyValueRow(label: 'Account Status', value: 'Active'),
+                            label: 'Phone', value: user?.phoneNumber ?? '—'),
+                        KeyValueRow(label: 'Email', value: user?.email ?? '—'),
+                        KeyValueRow(
+                          label: 'Business Name',
+                          value: business?.businessName ?? '—',
+                        ),
+                        KeyValueRow(
+                          label: 'Business Info',
+                          value: _businessInfo(business),
+                        ),
+                        KeyValueRow(
+                          label: 'Account Status',
+                          value: business?.status ?? '—',
+                        ),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -122,5 +138,20 @@ class ProfileScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _initials(String name) {
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.isEmpty || parts.first.isEmpty) return 'Q';
+    if (parts.length == 1) return parts.first[0].toUpperCase();
+    return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+  }
+
+  String _businessInfo(Business? business) {
+    if (business == null) return '—';
+    final parts = [business.businessCategory, business.town, business.county]
+        .where((e) => e != null && e.isNotEmpty)
+        .toList();
+    return parts.isEmpty ? '—' : parts.join(' / ');
   }
 }

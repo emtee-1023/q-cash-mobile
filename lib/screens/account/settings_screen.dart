@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/providers/auth_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/screen_header.dart';
 import 'help_support_screen.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -46,10 +48,11 @@ class SettingsScreen extends StatelessWidget {
                     ),
                   ),
                   const Divider(height: 24),
-                  const _SettingsRow(
+                  _SettingsRow(
                     icon: Icons.logout,
                     title: 'Logout',
-                    color: Color(0xFFE53935),
+                    color: const Color(0xFFE53935),
+                    onTap: () => _logout(context, ref),
                   ),
                 ],
               ),
@@ -58,6 +61,13 @@ class SettingsScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _logout(BuildContext context, WidgetRef ref) async {
+    await ref.read(authControllerProvider.notifier).logout();
+    if (context.mounted) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
   }
 }
 

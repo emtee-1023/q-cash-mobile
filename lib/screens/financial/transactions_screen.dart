@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/format.dart';
+import '../../core/models/transaction.dart';
+import '../../core/providers/business_providers.dart';
+import '../../core/providers/finance_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/bottom_nav.dart';
 import '../../widgets/cards.dart';
@@ -10,22 +15,16 @@ import '../home/dashboard_screen.dart';
 import 'repayment_screen.dart';
 import 'transaction_details_screen.dart';
 
-class TransactionsScreen extends StatefulWidget {
+class TransactionsScreen extends ConsumerStatefulWidget {
   const TransactionsScreen({super.key});
 
   @override
-  State<TransactionsScreen> createState() => _TransactionsScreenState();
+  ConsumerState<TransactionsScreen> createState() => _TransactionsScreenState();
 }
 
-class _TransactionsScreenState extends State<TransactionsScreen> {
+class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   int _filter = 0;
-  static const _filters = ['All', 'Income', 'Access', 'Repayment'];
-
-  void _openDetails(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const TransactionDetailsScreen()),
-    );
-  }
+  static const _filters = ['All', 'Income', 'Outflow'];
 
   void _onNavTap(BuildContext context, int index) {
     switch (index) {
@@ -56,6 +55,18 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final business = ref.watch(currentBusinessProvider);
+    final all = business == null
+        ? const <Transaction>[]
+        : ref.watch(transactionsProvider(business.id)).value ??
+            const <Transaction>[];
+
+    final filtered = switch (_filter) {
+      1 => all.where((t) => t.isInflow).toList(),
+      2 => all.where((t) => !t.isInflow).toList(),
+      _ => all,
+    };
+
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -93,42 +104,38 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             ),
             const SizedBox(height: 8),
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                children: [
-                  TransactionTile(
-                    title: 'Paybill Deposit',
-                    subtitle: '3 Sep 2026',
-                    amount: 'KES 3,200',
-                    positive: true,
-                    onTap: () => _openDetails(context),
-                  ),
-                  TransactionTile(
-                    title: 'Early Access',
-                    subtitle: '2 Sep 2026',
-                    amount: 'KES 5,000',
-                    positive: false,
-                    onTap: () => _openDetails(context),
-                  ),
-                  TransactionTile(
-                    title: 'Repayment',
-                    subtitle: '1 Sep 2026',
-                    amount: 'KES 1,000',
-                    positive: false,
-                    onTap: () => _openDetails(context),
-                  ),
-                  TransactionTile(
-                    title: 'Paybill Deposit',
-                    subtitle: '30 Aug 2026',
-                    amount: 'KES 2,800',
-                    positive: true,
-                    onTap: () => _openDetails(context),
-                  ),
-                ],
-              ),
+              child: filtered.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'No transactions yet.',
+                        style: TextStyle(color: QcashColors.textGray),
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      itemCount: filtered.length,
+                      separatorBuilder: (_, _) =>
+                          const Divider(height: 1, color: QcashColors.divider),
+                      itemBuilder: (context, i) => _tile(context, filtered[i]),
+                    ),
             ),
             BottomNavBar(currentIndex: 1, onTap: (i) => _onNavTap(context, i)),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _tile(BuildContext context, Transaction t) {
+    return TransactionTile(
+      title: t.counterpartyName ??
+          (t.isInflow ? 'Paybill Deposit' : (t.transactionType ?? 'Outflow')),
+      subtitle: formatDate(t.transactionTime, withTime: true),
+      amount: formatMinorAmount(t.amountMinor),
+      positive: t.isInflow,
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => TransactionDetailsScreen(transaction: t),
         ),
       ),
     );

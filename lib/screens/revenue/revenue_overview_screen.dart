@@ -1,14 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/format.dart';
+import '../../core/models/transaction.dart';
+import '../../core/providers/business_providers.dart';
+import '../../core/providers/finance_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/cards.dart';
 import '../../widgets/screen_header.dart';
 
-class RevenueOverviewScreen extends StatelessWidget {
+class RevenueOverviewScreen extends ConsumerWidget {
   const RevenueOverviewScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final business = ref.watch(currentBusinessProvider);
+    final assessment = ref.watch(accessControllerProvider).assessment;
+    final transactions = business == null
+        ? const <Transaction>[]
+        : ref.watch(transactionsProvider(business.id)).value ??
+            const <Transaction>[];
+
+    final currentRevenue = transactions
+        .where((t) => t.isInflow)
+        .fold<int>(0, (sum, t) => sum + t.amountMinor);
+    final predictedRevenue = assessment?.predictedRevenueMinor ?? 0;
+    final eligible = assessment?.recommendedAdvanceAmountMinor ?? 0;
+    final monthly = _monthlyRevenue(transactions);
+
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -26,41 +45,48 @@ class RevenueOverviewScreen extends StatelessWidget {
                       icon: Icons.auto_graph,
                     ),
                     const SizedBox(height: 16),
-                    const Row(
+                    Row(
                       children: [
                         Expanded(
                           child: StatCard(
                             label: 'Current Revenue',
-                            value: 'KES 38,000',
+                            value: formatMinor(currentRevenue),
+                            icon: Icons.trending_up,
+                            iconColor: QcashColors.navy,
                           ),
                         ),
-                        SizedBox(width: 12),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: StatCard(
                             label: 'Predicted Monthly Revenue',
-                            value: 'KES 45,000',
+                            value: formatMinor(predictedRevenue),
+                            icon: Icons.auto_graph,
+                            iconColor: QcashColors.green,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 24),
                     const SectionLabel('Revenue Trend'),
-                    const _RevenueChart(),
+                    _RevenueChart(data: monthly),
                     const SizedBox(height: 24),
                     const SectionLabel('Historical Revenue'),
-                    const InfoCard(
-                      children: [
-                        KeyValueRow(label: 'June', value: 'KES 28,000'),
-                        KeyValueRow(label: 'July', value: 'KES 32,000'),
-                        KeyValueRow(label: 'August', value: 'KES 38,000'),
-                      ],
+                    InfoCard(
+                      children: monthly.reversed.take(3).map((e) {
+                        return KeyValueRow(
+                          label: e.label,
+                          value: formatMinor(e.value),
+                        );
+                      }).toList(),
                     ),
                     const SizedBox(height: 24),
-                    const StatCard(
+                    StatCard(
                       label: 'Eligible Early Access',
-                      value: 'KES 25,000',
+                      value: formatMinor(eligible),
                       isLarge: true,
                       highlight: true,
+                      highlightColor: QcashColors.navy,
+                      icon: Icons.bolt,
                     ),
                     const SizedBox(height: 24),
                   ],
@@ -72,15 +98,45 @@ class RevenueOverviewScreen extends StatelessWidget {
       ),
     );
   }
+
+  List<_MonthValue> _monthlyRevenue(List<Transaction> transactions) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    final now = DateTime.now();
+    final result = <_MonthValue>[];
+    for (var i = 5; i >= 0; i--) {
+      final d = DateTime(now.year, now.month - i, 1);
+      var total = 0;
+      for (final t in transactions) {
+        if (t.isInflow &&
+            t.transactionTime.year == d.year &&
+            t.transactionTime.month == d.month) {
+          total += t.amountMinor;
+        }
+      }
+      result.add(_MonthValue(months[d.month - 1], total));
+    }
+    return result;
+  }
+}
+
+class _MonthValue {
+  const _MonthValue(this.label, this.value);
+
+  final String label;
+  final int value;
 }
 
 class _RevenueChart extends StatelessWidget {
-  const _RevenueChart();
+  const _RevenueChart({required this.data});
+
+  final List<_MonthValue> data;
 
   @override
   Widget build(BuildContext context) {
-    const data = [0.45, 0.65, 0.4, 0.8, 0.6, 0.95];
-    const labels = ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'];
+    final maxValue = data.fold<int>(0, (m, e) => e.value > m ? e.value : m);
     return Container(
       height: 160,
       padding: const EdgeInsets.fromLTRB(12, 16, 12, 12),
@@ -93,15 +149,16 @@ class _RevenueChart extends StatelessWidget {
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
-              children: List.generate(data.length, (i) {
+              children: data.map((e) {
+                final factor = maxValue == 0 ? 0.0 : (e.value / maxValue).clamp(0.05, 1.0);
                 return Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 6),
                     child: FractionallySizedBox(
-                      heightFactor: data[i],
+                      heightFactor: factor,
                       child: Container(
                         decoration: BoxDecoration(
-                          color: i == data.length - 1
+                          color: e.value == maxValue && maxValue != 0
                               ? QcashColors.green
                               : QcashColors.green.withValues(alpha: 0.4),
                           borderRadius: const BorderRadius.vertical(
@@ -112,21 +169,21 @@ class _RevenueChart extends StatelessWidget {
                     ),
                   ),
                 );
-              }),
+              }).toList(),
             ),
           ),
           const SizedBox(height: 8),
           Row(
-            children: List.generate(labels.length, (i) {
+            children: data.map((e) {
               return Expanded(
                 child: Text(
-                  labels[i],
+                  e.label,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                       fontSize: 10, color: QcashColors.textGray),
                 ),
               );
-            }),
+            }).toList(),
           ),
         ],
       ),
