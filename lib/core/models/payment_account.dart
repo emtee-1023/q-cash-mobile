@@ -6,7 +6,6 @@ class PaymentAccount {
     required this.businessId,
     required this.provider,
     required this.channelType,
-    required this.accountNumber,
     this.accountReference,
     this.accountName,
     required this.status,
@@ -19,7 +18,6 @@ class PaymentAccount {
   final int businessId;
   final String provider;
   final String channelType;
-  final String accountNumber;
   final String? accountReference;
   final String? accountName;
   final String status;
@@ -32,7 +30,6 @@ class PaymentAccount {
         businessId: toMinor(json['business_id']),
         provider: json['provider']?.toString() ?? '',
         channelType: json['channel_type']?.toString() ?? '',
-        accountNumber: json['account_number']?.toString() ?? '',
         accountReference: json['account_reference']?.toString(),
         accountName: json['account_name']?.toString(),
         status: json['status']?.toString() ?? '',

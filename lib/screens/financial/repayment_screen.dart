@@ -6,12 +6,14 @@ import '../../core/models/advance.dart';
 import '../../core/providers/business_providers.dart';
 import '../../core/providers/finance_providers.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/app_button.dart';
 import '../../widgets/bottom_nav.dart';
 import '../../widgets/cards.dart';
 import '../../widgets/screen_header.dart';
 import '../access/access_revenue_screen.dart';
 import '../account/profile_screen.dart';
 import '../home/dashboard_screen.dart';
+import 'repay_screen.dart';
 import 'repayment_details_screen.dart';
 import 'transactions_screen.dart';
 
@@ -141,7 +143,18 @@ class RepaymentScreen extends ConsumerWidget {
                           style: TextStyle(color: QcashColors.textGray),
                         ),
                       )
-                    else
+                    else ...[
+                      PrimaryButton(
+                        label: 'Make a Repayment',
+                        color: QcashColors.green,
+                        onPressed: outstanding > 0
+                            ? () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                      builder: (_) => const RepayScreen()),
+                                )
+                            : null,
+                      ),
+                      const SizedBox(height: 16),
                       ...advances.map(
                         (a) => TransactionTile(
                           title: 'Advance ${a.publicId}',
@@ -155,6 +168,7 @@ class RepaymentScreen extends ConsumerWidget {
                           ),
                         ),
                       ),
+                    ],
                     const SizedBox(height: 12),
                   ],
                 ),

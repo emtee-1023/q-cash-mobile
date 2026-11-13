@@ -45,7 +45,7 @@ class AccessSuccessScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 20),
               const Text(
-                'Access Successful',
+                'Advance Successful',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 22,
@@ -53,30 +53,31 @@ class AccessSuccessScreen extends ConsumerWidget {
                   color: QcashColors.navy,
                 ),
               ),
+              const SizedBox(height: 8),
+              const Text(
+                'Your cash advance is on its way to your M-Pesa.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: QcashColors.textGray),
+              ),
               const SizedBox(height: 24),
               InfoCard(
                 children: [
                   KeyValueRow(
-                    label: 'Amount Accessed',
+                    label: 'Advance amount',
                     value: formatMinor(advance.principalAmountMinor),
                   ),
-                  KeyValueRow(label: 'Transaction Ref', value: advance.publicId),
+                  KeyValueRow(label: 'Reference', value: advance.publicId),
                   KeyValueRow(
                     label: 'Date',
                     value: formatDate(advance.disbursedAt ?? advance.createdAt ?? DateTime.now()),
                   ),
                   KeyValueRow(
-                    label: 'Updated Available Balance',
+                    label: 'Remaining available balance',
                     value: formatMinor(remaining),
                   ),
                 ],
               ),
               const Spacer(),
-              OutlineButton(
-                label: 'View Details',
-                onPressed: () {},
-              ),
-              const SizedBox(height: 12),
               PrimaryButton(
                 label: 'Back to Dashboard',
                 onPressed: () => Navigator.of(context).pushAndRemoveUntil(

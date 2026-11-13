@@ -6,7 +6,8 @@ import 'package:mobile/core/providers/providers.dart';
 import 'package:mobile/main.dart';
 
 void main() {
-  testWidgets('App launches to Welcome screen', (WidgetTester tester) async {
+  testWidgets('App launches to the login screen when signed out',
+      (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
 
@@ -16,9 +17,11 @@ void main() {
         child: const QcashApp(),
       ),
     );
+    await tester.pump(const Duration(milliseconds: 1500));
     await tester.pumpAndSettle();
 
-    expect(find.text('Get Started'), findsOneWidget);
-    expect(find.text('Log In'), findsOneWidget);
+    expect(find.text('Karibu Tena!'), findsOneWidget);
+    expect(find.text('Sign In'), findsOneWidget);
+    expect(find.text('Sign Up'), findsOneWidget);
   });
 }

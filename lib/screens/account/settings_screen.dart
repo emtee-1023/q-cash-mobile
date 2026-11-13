@@ -68,7 +68,7 @@ class SettingsScreen extends ConsumerWidget {
     await ref.read(authControllerProvider.notifier).logout();
     if (context.mounted) {
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const AppHome(showSplash: false)),
+        MaterialPageRoute(builder: (_) => const AppHome()),
         (route) => false,
       );
     }

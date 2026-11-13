@@ -8,7 +8,6 @@ import '../../core/providers/finance_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/cards.dart';
-import '../../widgets/screen_header.dart';
 import 'access_confirmation_screen.dart';
 
 class AccessRevenueScreen extends ConsumerStatefulWidget {
@@ -37,7 +36,7 @@ class _AccessRevenueScreenState extends ConsumerState<AccessRevenueScreen> {
     } on ApiException catch (e) {
       if (mounted) setState(() => _error = e.readable);
     } catch (_) {
-      if (mounted) setState(() => _error = 'Could not run your assessment.');
+      if (mounted) setState(() => _error = 'Could not check your eligibility.');
     }
   }
 
@@ -54,7 +53,7 @@ class _AccessRevenueScreenState extends ConsumerState<AccessRevenueScreen> {
     } on ApiException catch (e) {
       if (mounted) setState(() => _error = e.readable);
     } catch (_) {
-      if (mounted) setState(() => _error = 'Could not prepare your offer.');
+      if (mounted) setState(() => _error = 'Could not prepare your advance.');
     }
   }
 
@@ -68,99 +67,73 @@ class _AccessRevenueScreenState extends ConsumerState<AccessRevenueScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const ScreenHeader(title: 'Access Revenue', showBack: true),
+            _header(),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    const SizedBox(height: 8),
                     if (assessment == null && _error == null)
                       const Padding(
                         padding: EdgeInsets.symmetric(vertical: 80),
-                        child: Center(
-                          child: CircularProgressIndicator(color: QcashColors.green),
-                        ),
-                      )
-                    else if (_error != null && assessment == null) ...[
-                      const SizedBox(height: 40),
-                      CalloutBox(
-                        text: _error!,
-                        icon: Icons.error_outline,
-                      ),
-                      const SizedBox(height: 16),
-                      PrimaryButton(
-                        label: 'Try Again',
-                        onPressed: () => _load(),
-                      ),
-                    ] else ...[
-                      StatCard(
-                        label: 'Maximum Available',
-                        value: formatMinor(available),
-                        isLarge: true,
-                        highlight: true,
-                        highlightColor: QcashColors.navy,
-                        icon: Icons.bolt,
-                      ),
-                      const SizedBox(height: 24),
-                      const SectionLabel('Amount to Access'),
-                      Container(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        decoration: BoxDecoration(
-                          color: QcashColors.iconBg,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: QcashColors.border),
-                        ),
                         child: Column(
                           children: [
+                            CircularProgressIndicator(color: QcashColors.green),
+                            SizedBox(height: 16),
                             Text(
-                              formatMinor(available),
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w800,
-                                color: QcashColors.navy,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            const Text(
-                              'Based on your revenue assessment',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: QcashColors.textGray,
-                              ),
+                              'Checking your eligibility…',
+                              style: TextStyle(color: QcashColors.textGray),
                             ),
                           ],
                         ),
-                      ),
+                      )
+                    else if (_error != null && assessment == null) ...[
+                      const SizedBox(height: 32),
+                      CalloutBox(text: _error!, icon: Icons.error_outline),
+                      const SizedBox(height: 16),
+                      PrimaryButton(label: 'Try Again', onPressed: _load),
+                    ] else ...[
+                      _advanceHero(available),
                       const SizedBox(height: 16),
                       const CalloutBox(
-                        text: 'Zero-Interest — No Access Fee',
-                        icon: Icons.bolt,
+                        text:
+                            'Zero interest. Repaid automatically from your future '
+                            'sales as they come in.',
+                        icon: Icons.schedule,
                       ),
                       const SizedBox(height: 16),
                       InfoCard(
                         children: [
                           KeyValueRow(
-                            label: 'Amount Received',
+                            label: 'You receive',
                             value: formatMinor(available),
                           ),
                           KeyValueRow(
-                            label: 'Expected Repayment',
+                            label: 'You repay',
                             value: formatMinor(available),
                           ),
+                          const KeyValueRow(label: 'Interest', value: '0%'),
+                          if (assessment?.maximumRepaymentDays != null)
+                            KeyValueRow(
+                              label: 'Repayment window',
+                              value: '${assessment!.maximumRepaymentDays} days',
+                            ),
                         ],
                       ),
                       if (_error != null) ...[
                         const SizedBox(height: 12),
                         Text(
                           _error!,
-                          style: const TextStyle(color: Color(0xFFE53935), fontSize: 13),
+                          style: const TextStyle(
+                              color: Color(0xFFE53935), fontSize: 13),
                         ),
                       ],
                       const SizedBox(height: 20),
                       PrimaryButton(
                         label: 'Continue',
+                        color: QcashColors.green,
                         onPressed: available > 0 ? _continue : null,
                       ),
                     ],
@@ -171,6 +144,136 @@ class _AccessRevenueScreenState extends ConsumerState<AccessRevenueScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _header() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.of(context).maybePop(),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                border: Border.all(color: QcashColors.border),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.chevron_left, size: 24),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text.rich(
+            TextSpan(
+              children: const [
+                TextSpan(
+                  text: 'Cash ',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    color: QcashColors.navy,
+                  ),
+                ),
+                TextSpan(
+                  text: 'Advance',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    color: QcashColors.green,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Get an instant advance on your business earnings, with no interest.',
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.4,
+              color: QcashColors.textGray,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _advanceHero(int available) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [QcashColors.navy, QcashColors.navyDark],
+        ),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: QcashColors.navy.withValues(alpha: 0.28),
+            offset: const Offset(0, 8),
+            blurRadius: 18,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.bolt, color: QcashColors.green, size: 18),
+              const SizedBox(width: 8),
+              const Text(
+                'Available cash advance',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: QcashColors.green,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text(
+                  'Zero interest',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            formatMinor(available),
+            style: const TextStyle(
+              fontSize: 30,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Based on your recent business earnings',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.white.withValues(alpha: 0.75),
+            ),
+          ),
+        ],
       ),
     );
   }

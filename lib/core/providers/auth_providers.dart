@@ -43,12 +43,20 @@ class AuthController extends Notifier<AuthState> {
     required String phoneNumber,
     required String password,
     required String passwordConfirmation,
+    String? email,
+    required String idType,
+    required String identificationNumber,
+    required String dateOfBirth,
   }) async {
     final message = await ref.read(authRepositoryProvider).register(
           name: name,
           phoneNumber: phoneNumber,
           password: password,
           passwordConfirmation: passwordConfirmation,
+          email: email,
+          idType: idType,
+          identificationNumber: identificationNumber,
+          dateOfBirth: dateOfBirth,
         );
     state = state.copyWith(pendingPhone: phoneNumber);
     return message;
@@ -134,6 +142,23 @@ class AuthController extends Notifier<AuthState> {
   }
 
   Future<User> loadUser() => ref.read(authRepositoryProvider).user();
+
+  Future<String> updateProfile({required String email}) =>
+      ref.read(authRepositoryProvider).updateProfile(email: email);
+
+  Future<String> sendEmailVerificationCode() =>
+      ref.read(authRepositoryProvider).sendEmailVerificationCode();
+
+  Future<String> verifyEmail({required String otp}) =>
+      ref.read(authRepositoryProvider).verifyEmail(otp: otp);
+
+  Future<String> enableTwoFactor() => ref.read(authRepositoryProvider).enableTwoFactor();
+
+  Future<String> confirmTwoFactor({required String otp}) =>
+      ref.read(authRepositoryProvider).confirmTwoFactor(otp: otp);
+
+  Future<String> disableTwoFactor({required String password}) =>
+      ref.read(authRepositoryProvider).disableTwoFactor(password: password);
 }
 
 final authControllerProvider =
