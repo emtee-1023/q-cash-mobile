@@ -94,6 +94,18 @@ class ApiClient {
         ));
   }
 
+  Future<Response<T>> patch<T>(
+    String path, {
+    Object? data,
+    bool auth = true,
+  }) {
+    return _guard(() => _dio.patch<T>(
+          path,
+          data: data,
+          options: auth ? _authOptions : null,
+        ));
+  }
+
   Future<Response<T>> _guard<T>(Future<Response<T>> Function() run) async {
     try {
       return await run();

@@ -22,16 +22,14 @@ class MpesaConnectionScreen extends ConsumerStatefulWidget {
 
 class _MpesaConnectionScreenState extends ConsumerState<MpesaConnectionScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _accountNumber = TextEditingController();
   final _accountReference = TextEditingController();
   final _accountName = TextEditingController();
   String? _provider = 'Safaricom';
-  String? _channelType = 'Paybill';
+  String? _channelType = 'paybill';
   bool _busy = false;
 
   @override
   void dispose() {
-    _accountNumber.dispose();
     _accountReference.dispose();
     _accountName.dispose();
     super.dispose();
@@ -46,7 +44,6 @@ class _MpesaConnectionScreenState extends ConsumerState<MpesaConnectionScreen> {
             {
               'provider': _provider,
               'channel_type': _channelType,
-              'account_number': _accountNumber.text.trim(),
               if (_accountReference.text.trim().isNotEmpty)
                 'account_reference': _accountReference.text.trim(),
               if (_accountName.text.trim().isNotEmpty)
@@ -102,21 +99,16 @@ class _MpesaConnectionScreenState extends ConsumerState<MpesaConnectionScreen> {
                         label: 'Channel Type',
                         hint: 'Select channel',
                         value: _channelType,
-                        items: const ['Paybill', 'Till'],
+                        items: const ['paybill', 'till'],
                         onChanged: (v) => setState(() => _channelType = v),
                       ),
                       AppTextField(
-                        label: 'Paybill Number',
-                        hint: 'e.g. 522533',
-                        controller: _accountNumber,
-                        keyboardType: TextInputType.number,
-                        validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? 'Paybill number is required' : null,
-                      ),
-                      AppTextField(
-                        label: 'Business / Account Number',
-                        hint: 'Your Paybill account number',
+                        label: 'Account Number',
+                        hint: 'Your Paybill business account number',
                         controller: _accountReference,
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Account number is required'
+                            : null,
                       ),
                       AppTextField(
                         label: 'Account Name (optional)',

@@ -9,7 +9,7 @@ import '../onboarding/business_registration_screen.dart';
 import '../splash_screen.dart';
 import 'dashboard_screen.dart';
 
-/// Root widget that shows the splash screen, then routes to login or the
+/// Root widget that shows the branded splash, then routes to login or the
 /// dashboard based on the persisted session.
 class AppHome extends ConsumerStatefulWidget {
   const AppHome({super.key, this.showSplash = true});

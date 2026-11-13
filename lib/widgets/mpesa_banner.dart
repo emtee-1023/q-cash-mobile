@@ -34,8 +34,10 @@ class MpesaBanner extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(6),
@@ -67,29 +69,15 @@ class MpesaBanner extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _Detail(
-                  label: 'Paybill Number',
-                  value: paybill,
-                ),
+                child: _Detail(label: 'Paybill Number', value: paybill),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: _Detail(
-                  label: 'Account Number',
-                  value: accountNumber,
-                ),
+                child: _Detail(label: 'Account Number', value: accountNumber),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Pay to this Paybill and use your account number as the reference.',
-            style: TextStyle(
-              fontSize: 11.5,
-              height: 1.35,
-              color: Color(0xFFE6FFF7),
-            ),
-          ),
         ],
       ),
     );

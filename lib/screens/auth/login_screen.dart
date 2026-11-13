@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api/api_client.dart';
+import '../../core/format.dart';
 import '../../core/providers/auth_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_button.dart';
-import '../../widgets/screen_header.dart';
+import '../../widgets/phone_field.dart';
 import 'forgot_password_screen.dart';
 import 'registration_screen.dart';
 import 'two_factor_screen.dart';
@@ -35,17 +36,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    final phone = normalizeKenyanPhone(_phone.text);
+    if (phone == null) {
+      _showError('Enter a valid phone number.');
+      return;
+    }
     setState(() => _busy = true);
     try {
-      final requiresTwoFactor = await ref.read(authControllerProvider.notifier).login(
-            phoneNumber: _phone.text.trim(),
-            password: _password.text,
-          );
+      final requiresTwoFactor = await ref
+          .read(authControllerProvider.notifier)
+          .login(phoneNumber: phone, password: _password.text);
       if (!mounted) return;
       if (requiresTwoFactor) {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const TwoFactorScreen()),
-        );
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const TwoFactorScreen()));
       } else {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
@@ -69,7 +73,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            ScreenHeader(title: 'Log In', showBack: widget.showBack),
+            if (widget.showBack)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).maybePop(),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: QcashColors.border),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.chevron_left, size: 24),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -78,11 +101,46 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      const SizedBox(height: 76),
+                      Text.rich(
+                        TextSpan(
+                          children: const [
+                            TextSpan(
+                              text: 'Karibu ',
+                              style: TextStyle(
+                                fontSize: 34,
+                                fontWeight: FontWeight.w800,
+                                color: QcashColors.navy,
+                              ),
+                            ),
+                            TextSpan(
+                              text: 'Tena!',
+                              style: TextStyle(
+                                fontSize: 34,
+                                fontWeight: FontWeight.w800,
+                                color: QcashColors.green,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 48),
+                      const Text(
+                        'Welcome back! Enter your phone number and password to '
+                        'sign in to your account.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          height: 1.4,
+                          color: QcashColors.textGray,
+                        ),
+                      ),
+                      const SizedBox(height: 40),
                       TextFormField(
                         controller: _phone,
                         keyboardType: TextInputType.phone,
-                        decoration: _decoration('Phone Number', '+2547XXXXXXXX'),
-                        validator: (v) => (v == null || v.trim().length < 10)
+                        inputFormatters: [KenyanPhoneInputFormatter()],
+                        decoration: _decoration('Phone Number'),
+                        validator: (v) => normalizeKenyanPhone(v ?? '') == null
                             ? 'Enter a valid phone number'
                             : null,
                       ),
@@ -90,23 +148,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       TextFormField(
                         controller: _password,
                         obscureText: _obscure,
-                        decoration: _decoration('Password', '••••••••').copyWith(
+                        decoration: _decoration('Password').copyWith(
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _obscure ? Icons.visibility_off : Icons.visibility,
+                              _obscure
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
                               size: 20,
                               color: QcashColors.textGray,
                             ),
-                            onPressed: () => setState(() => _obscure = !_obscure),
+                            onPressed: () =>
+                                setState(() => _obscure = !_obscure),
                           ),
                         ),
+                        validator: (v) => (v == null || v.isEmpty)
+                            ? 'Enter your password'
+                            : null,
                       ),
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           onPressed: () => Navigator.of(context).push(
                             MaterialPageRoute(
-                                builder: (_) => const ForgotPasswordScreen()),
+                              builder: (_) => const ForgotPasswordScreen(),
+                            ),
                           ),
                           child: const Text(
                             'Forgot Password?',
@@ -117,26 +182,37 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 16),
                       PrimaryButton(
-                        label: 'Log In',
+                        label: 'Sign In',
+                        color: QcashColors.green,
                         onPressed: _busy ? null : _submit,
                       ),
-                      const SizedBox(height: 12),
-                      TextButton(
-                        onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                              builder: (_) => const RegistrationScreen()),
-                        ),
-                        child: const Text(
-                          "Don't have an account? Register",
-                          style: TextStyle(
-                            color: QcashColors.green,
-                            fontWeight: FontWeight.w600,
+                      const SizedBox(height: 32),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            "Don't have an account? ",
+                            style: TextStyle(color: QcashColors.textGray),
                           ),
-                        ),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const RegistrationScreen(),
+                              ),
+                            ),
+                            child: const Text(
+                              'Sign Up',
+                              style: TextStyle(
+                                color: QcashColors.green,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 32),
                     ],
                   ),
                 ),
@@ -148,24 +224,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  InputDecoration _decoration(String label, String hint) {
+  InputDecoration _decoration(String hint) {
     return InputDecoration(
-      labelText: label,
       hintText: hint,
-      floatingLabelStyle: const TextStyle(color: QcashColors.navy),
       filled: true,
       fillColor: QcashColors.iconBg,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         borderSide: const BorderSide(color: QcashColors.border),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         borderSide: const BorderSide(color: QcashColors.border),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         borderSide: const BorderSide(color: QcashColors.green, width: 1.5),
       ),
     );

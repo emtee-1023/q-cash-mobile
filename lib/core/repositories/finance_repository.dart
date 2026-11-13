@@ -134,4 +134,24 @@ class FinanceRepository {
     }
     throw ApiException('Unexpected repayment payload');
   }
+
+  // ---- STK push ----
+
+  Future<String> initiateStkPush(
+    int businessId, {
+    required String phoneNumber,
+    required int amountMinor,
+    String? accountReference,
+    String? description,
+  }) async {
+    final res = await _client.post('/businesses/$businessId/stk-push', data: {
+      'phone_number': phoneNumber,
+      'amount_minor': amountMinor,
+      'account_reference': ?accountReference,
+      'description': ?description,
+    });
+    return res.data is Map
+        ? (res.data['message']?.toString() ?? 'STK push initiated.')
+        : 'STK push initiated.';
+  }
 }

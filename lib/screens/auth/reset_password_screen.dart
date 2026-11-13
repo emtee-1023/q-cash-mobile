@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api/api_client.dart';
+import '../../core/format.dart';
 import '../../core/providers/auth_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_button.dart';
@@ -98,7 +99,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               const SizedBox(height: 16),
               Center(
                 child: Text(
-                  'Code sent to ${widget.phone}',
+                  'Code sent to ${formatKenyanPhone(widget.phone)}',
                   style: const TextStyle(fontSize: 14, color: QcashColors.textGray),
                 ),
               ),

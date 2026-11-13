@@ -19,12 +19,20 @@ class AuthRepository {
     required String phoneNumber,
     required String password,
     required String passwordConfirmation,
+    String? email,
+    required String idType,
+    required String identificationNumber,
+    required String dateOfBirth,
   }) async {
     final res = await _client.post('/auth/register', auth: false, data: {
       'name': name,
       'phone_number': phoneNumber,
       'password': password,
       'password_confirmation': passwordConfirmation,
+      'email': ?email,
+      'id_type': idType,
+      'identification_number': identificationNumber,
+      'date_of_birth': dateOfBirth,
     });
     return _message(res.data);
   }
@@ -140,6 +148,21 @@ class AuthRepository {
 
   Future<String> disableTwoFactor({required String password}) async {
     final res = await _client.post('/auth/2fa/disable', data: {'password': password});
+    return _message(res.data);
+  }
+
+  Future<String> updateProfile({required String email}) async {
+    final res = await _client.patch('/user', data: {'email': email});
+    return _message(res.data);
+  }
+
+  Future<String> sendEmailVerificationCode() async {
+    final res = await _client.post('/user/email/verification-code');
+    return _message(res.data);
+  }
+
+  Future<String> verifyEmail({required String otp}) async {
+    final res = await _client.post('/user/email/verify', data: {'otp': otp});
     return _message(res.data);
   }
 
