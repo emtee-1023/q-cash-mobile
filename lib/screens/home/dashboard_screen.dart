@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/format.dart';
@@ -19,8 +22,41 @@ import '../financial/request_payment_screen.dart';
 import '../financial/transactions_screen.dart';
 import '../financial/wallet_screen.dart';
 
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  final _heroController = PageController();
+  int _heroPage = 0;
+  Timer? _pollTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _pollTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      _refreshData();
+    });
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    _heroController.dispose();
+    super.dispose();
+  }
+
+  void _refreshData() {
+    final business = ref.read(currentBusinessProvider);
+    if (business == null) return;
+    ref.invalidate(advancesProvider(business.id));
+    ref.invalidate(transactionsProvider(business.id));
+    ref.invalidate(walletProvider(business.id));
+    ref.invalidate(businessDetailProvider(business.id));
+  }
 
   void _onNavTap(BuildContext context, int index) {
     switch (index) {
@@ -50,7 +86,7 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final business = ref.watch(currentBusinessProvider);
     if (business == null) {
       return const Scaffold(
@@ -58,6 +94,7 @@ class DashboardScreen extends ConsumerWidget {
       );
     }
 
+    final detail = ref.watch(businessDetailProvider(business.id)).value ?? business;
     final advances =
         ref.watch(advancesProvider(business.id)).value ?? const <Advance>[];
     final transactions = ref.watch(transactionsProvider(business.id)).value ??
@@ -68,6 +105,7 @@ class DashboardScreen extends ConsumerWidget {
 
     final balance = wallet?.balanceMinor ?? business.walletBalanceMinor;
     final todayEarnings = _todayEarnings(transactions);
+    final lastMonthEarnings = _lastMonthEarnings(transactions);
     final outstanding = _outstanding(advances);
     final latest = _latestAdvance(advances);
 
@@ -79,14 +117,13 @@ class DashboardScreen extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
-            _header(context, ref, business, greeting),
+            _header(context, business, greeting),
             Expanded(
               child: RefreshIndicator(
                 color: QcashColors.green,
                 onRefresh: () async {
-                  ref.invalidate(advancesProvider(business.id));
-                  ref.invalidate(transactionsProvider(business.id));
-                  ref.invalidate(walletProvider(business.id));
+                  _refreshData();
+                  await Future<void>.delayed(const Duration(milliseconds: 300));
                 },
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -94,7 +131,7 @@ class DashboardScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _walletHero(context, business, balance),
+                      _heroSlider(context, business, detail, balance),
                       const SizedBox(height: 14),
                       _advanceCard(context, available),
                       const SizedBox(height: 20),
@@ -122,6 +159,13 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 12),
                       _latestAdvanceTile(context, latest),
+                      const SizedBox(height: 12),
+                      StatCard(
+                        label: "Last month's earnings",
+                        value: formatMinor(lastMonthEarnings),
+                        icon: Icons.calendar_month_outlined,
+                        iconColor: QcashColors.green,
+                      ),
                       const SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -170,7 +214,6 @@ class DashboardScreen extends ConsumerWidget {
 
   Widget _header(
     BuildContext context,
-    WidgetRef ref,
     Business business,
     String greeting,
   ) {
@@ -401,25 +444,50 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _walletHero(BuildContext context, Business business, int balance) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [QcashColors.green, Color(0xFF158A6C)],
-        ),
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: QcashColors.green.withValues(alpha: 0.3),
-            offset: const Offset(0, 8),
-            blurRadius: 18,
+  Widget _heroSlider(
+    BuildContext context,
+    Business business,
+    Business detail,
+    int balance,
+  ) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 240,
+          child: PageView(
+            controller: _heroController,
+            onPageChanged: (i) => setState(() => _heroPage = i),
+            children: [
+              _walletHero(context, business, balance),
+              _mpesaHero(context, business, detail),
+            ],
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(2, (i) {
+            final active = _heroPage == i;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              height: 6,
+              width: active ? 18 : 6,
+              decoration: BoxDecoration(
+                color: active
+                    ? QcashColors.green
+                    : QcashColors.green.withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(99),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+
+  Widget _walletHero(BuildContext context, Business business, int balance) {
+    return _heroCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -472,34 +540,184 @@ class DashboardScreen extends ConsumerWidget {
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 18),
+          const Spacer(),
+          _heroActions(context, business),
+        ],
+      ),
+    );
+  }
+
+  Widget _mpesaHero(BuildContext context, Business business, Business detail) {
+    final paybill = detail.paybillNumber;
+    final account = detail.collectionAccountNumber;
+    return _heroCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
           Row(
             children: [
-              Expanded(
-                child: _walletAction(
-                  Icons.arrow_upward,
-                  'Withdraw',
-                  () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const WalletScreen()),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text(
+                  'M-PESA',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.5,
+                    color: QcashColors.green,
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _walletAction(
-                  Icons.request_quote_outlined,
-                  'Prompt Customer',
-                  () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => RequestPaymentScreen(business: business),
-                    ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Lipa na M-PESA',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
                   ),
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _mpesaDetail(
+                  'Paybill Number',
+                  (paybill == null || paybill.isEmpty) ? '—' : paybill,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _mpesaDetail(
+                  'Account Number',
+                  (account == null || account.isEmpty) ? '—' : account,
+                ),
+              ),
+            ],
+          ),
+          const Spacer(),
+          _heroActions(context, business),
         ],
       ),
+    );
+  }
+
+  Widget _heroCard({required Widget child}) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 2),
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [QcashColors.green, Color(0xFF158A6C)],
+        ),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: QcashColors.green.withValues(alpha: 0.3),
+            offset: const Offset(0, 8),
+            blurRadius: 18,
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  Widget _mpesaDetail(String label, String value) {
+    final canCopy = value != '—';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFFBFF3E4),
+          ),
+        ),
+        const SizedBox(height: 4),
+        InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: canCopy
+              ? () {
+                  Clipboard.setData(ClipboardData(text: value));
+                  ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(
+                      SnackBar(
+                        content: Text('$label copied'),
+                        duration: const Duration(seconds: 1),
+                      ),
+                    );
+                }
+              : null,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              if (canCopy) ...[
+                const SizedBox(width: 6),
+                const Icon(
+                  Icons.copy_rounded,
+                  size: 16,
+                  color: Color(0xFFE6FFF7),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _heroActions(BuildContext context, Business business) {
+    return Row(
+      children: [
+        Expanded(
+          child: _walletAction(
+            Icons.arrow_upward,
+            'Withdraw',
+            () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const WalletScreen()),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _walletAction(
+            Icons.request_quote_outlined,
+            'Prompt Customer',
+            () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => RequestPaymentScreen(business: business),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -678,6 +896,20 @@ class DashboardScreen extends ConsumerWidget {
       if (!t.isInflow) continue;
       final d = t.transactionTime.toLocal();
       if (d.year == now.year && d.month == now.month && d.day == now.day) {
+        total += t.amountMinor;
+      }
+    }
+    return total;
+  }
+
+  int _lastMonthEarnings(List<Transaction> transactions) {
+    final now = DateTime.now();
+    final lastMonth = DateTime(now.year, now.month - 1);
+    var total = 0;
+    for (final t in transactions) {
+      if (!t.isInflow) continue;
+      final d = t.transactionTime.toLocal();
+      if (d.year == lastMonth.year && d.month == lastMonth.month) {
         total += t.amountMinor;
       }
     }

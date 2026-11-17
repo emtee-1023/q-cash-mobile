@@ -145,13 +145,26 @@ class _BusinessRegistrationScreenState
                       ),
                       AppSelectField<BusinessType>(
                         label: 'Business Type',
-                        hint: 'Select type',
+                        hint: typesAsync.hasError
+                            ? 'Failed to load types'
+                            : 'Select type',
                         items: types,
                         labelOf: (t) => t.name,
                         value: _businessType,
                         loading: typesAsync.isLoading,
                         onChanged: (v) => setState(() => _businessType = v),
                       ),
+                      if (typesAsync.hasError)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 0, bottom: 12),
+                          child: Text(
+                            'Could not load business types. Check your connection and try again.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ),
                       AppTextField(
                         label: 'Registration Number (optional)',
                         hint: 'BRS/XXXX/2024',
