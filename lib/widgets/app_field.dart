@@ -123,7 +123,7 @@ class AppDropdownField extends StatelessWidget {
             ),
           ),
           DropdownButtonFormField<String>(
-            initialValue: value,
+            value: value,
             isExpanded: true,
             hint: Text(hint),
             decoration: InputDecoration(
@@ -164,6 +164,7 @@ class AppSelectField<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final disabled = loading || items.isEmpty;
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Column(
@@ -181,9 +182,13 @@ class AppSelectField<T> extends StatelessWidget {
             ),
           ),
           DropdownButtonFormField<T>(
-            initialValue: value,
+            value: items.contains(value) ? value : null,
             isExpanded: true,
-            hint: Text(hint),
+            hint: Text(
+              loading
+                  ? 'Loading...'
+                  : (items.isEmpty ? 'No options available' : hint),
+            ),
             decoration: InputDecoration(
               suffixIcon: loading
                   ? const Padding(
@@ -201,9 +206,9 @@ class AppSelectField<T> extends StatelessWidget {
                       color: QcashColors.textGray),
             ),
             items: items
-                .map((e) => DropdownMenuItem(value: e, child: Text(labelOf(e))))
+                .map((e) => DropdownMenuItem<T>(value: e, child: Text(labelOf(e))))
                 .toList(),
-            onChanged: onChanged,
+            onChanged: disabled ? null : onChanged,
           ),
         ],
       ),

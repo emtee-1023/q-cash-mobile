@@ -4,13 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/api/api_client.dart';
 import '../../core/format.dart';
 import '../../core/models/business.dart';
-import '../../core/providers/business_providers.dart';
 import '../../core/providers/providers.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_field.dart';
 import '../../widgets/cards.dart';
-import '../../widgets/mpesa_banner.dart';
 import '../../widgets/phone_field.dart';
 
 class RequestPaymentScreen extends ConsumerStatefulWidget {
@@ -77,12 +75,6 @@ class _RequestPaymentScreenState extends ConsumerState<RequestPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final detail = ref
-            .watch(businessDetailProvider(widget.business.id))
-            .value ??
-        widget.business;
-    final paybill = detail.paybillNumber ?? '—';
-    final accountNumber = detail.collectionAccountNumber ?? '—';
 
     return Scaffold(
       body: SafeArea(
@@ -138,13 +130,6 @@ class _RequestPaymentScreenState extends ConsumerState<RequestPaymentScreen> {
                         onPressed: (_busy || _amountMinor == null)
                             ? null
                             : _submit,
-                      ),
-                      const SizedBox(height: 28),
-                      const SectionLabel('Or share your M-Pesa details'),
-                      const SizedBox(height: 4),
-                      MpesaBanner(
-                        paybill: paybill,
-                        accountNumber: accountNumber,
                       ),
                       const SizedBox(height: 24),
                     ],
