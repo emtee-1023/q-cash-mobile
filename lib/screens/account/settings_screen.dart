@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/auth_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/screen_header.dart';
-import '../home/app_home.dart';
 import 'help_support_screen.dart';
+import 'notifications_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -37,9 +37,14 @@ class SettingsScreen extends ConsumerWidget {
                     icon: Icons.lock_outline,
                     title: 'Security',
                   ),
-                  const _SettingsRow(
+                  _SettingsRow(
                     icon: Icons.notifications_none,
                     title: 'Notifications',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const NotificationsScreen(),
+                      ),
+                    ),
                   ),
                   _SettingsRow(
                     icon: Icons.help_outline,
@@ -53,7 +58,7 @@ class SettingsScreen extends ConsumerWidget {
                     icon: Icons.logout,
                     title: 'Logout',
                     color: const Color(0xFFE53935),
-                    onTap: () => _logout(context, ref),
+                    onTap: () => _logout(ref),
                   ),
                 ],
               ),
@@ -64,14 +69,8 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _logout(BuildContext context, WidgetRef ref) async {
+  Future<void> _logout(WidgetRef ref) async {
     await ref.read(authControllerProvider.notifier).logout();
-    if (context.mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const AppHome(showSplash: false)),
-        (route) => false,
-      );
-    }
   }
 }
 

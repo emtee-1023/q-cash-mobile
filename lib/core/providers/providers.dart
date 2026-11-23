@@ -5,13 +5,16 @@ import '../api/api_client.dart';
 import '../repositories/auth_repository.dart';
 import '../repositories/business_repository.dart';
 import '../repositories/finance_repository.dart';
+import '../repositories/notification_repository.dart';
 
 final sharedPreferencesProvider = Provider<SharedPreferences>(
   (ref) => throw UnimplementedError('Overridden in main()'),
 );
 
 final apiClientProvider = Provider<ApiClient>((ref) {
-  return ApiClient(ref.watch(sharedPreferencesProvider));
+  final client = ApiClient(ref.watch(sharedPreferencesProvider));
+  ref.onDispose(client.dispose);
+  return client;
 });
 
 final authRepositoryProvider = Provider<AuthRepository>(
@@ -24,4 +27,8 @@ final businessRepositoryProvider = Provider<BusinessRepository>(
 
 final financeRepositoryProvider = Provider<FinanceRepository>(
   (ref) => FinanceRepository(ref.watch(apiClientProvider)),
+);
+
+final notificationRepositoryProvider = Provider<NotificationRepository>(
+  (ref) => NotificationRepository(ref.watch(apiClientProvider)),
 );

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/advance.dart';
 import '../models/assessment.dart';
+import '../models/business_analytics.dart';
 import '../models/offer.dart';
 import '../models/transaction.dart';
 import 'providers.dart';
@@ -14,6 +15,11 @@ final transactionsProvider = FutureProvider.autoDispose
 final advancesProvider = FutureProvider.autoDispose
     .family<List<Advance>, int>((ref, businessId) async {
   return ref.watch(financeRepositoryProvider).listAdvances(businessId);
+});
+
+final analyticsProvider = FutureProvider.autoDispose
+    .family<BusinessAnalytics, int>((ref, businessId) async {
+  return ref.watch(financeRepositoryProvider).getAnalytics(businessId);
 });
 
 class AccessState {

@@ -123,6 +123,12 @@ class AuthController extends Notifier<AuthState> {
     state = const AuthState();
   }
 
+  /// Drops the local session after the API rejects an authenticated request
+  /// (for example an expired token).
+  void expireSession() {
+    state = const AuthState();
+  }
+
   Future<String> forgotPassword({required String phoneNumber}) {
     return ref.read(authRepositoryProvider).forgotPassword(phoneNumber: phoneNumber);
   }

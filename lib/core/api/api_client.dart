@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -50,12 +52,19 @@ class ApiClient {
   static const _tokenKey = 'qcash.auth_token';
 
   final SharedPreferences _prefs;
+  final _unauthorizedController = StreamController<void>.broadcast();
   late final Dio _dio;
   String? _token;
 
   String? get token => _token;
 
   bool get isAuthenticated => _token != null && _token!.isNotEmpty;
+
+  /// Emits when an authenticated request is rejected with a 401 so the app can
+  /// clear the session and send the user back to the login screen.
+  Stream<void> get onUnauthorized => _unauthorizedController.stream;
+
+  void dispose() => _unauthorizedController.close();
 
   Future<void> setToken(String? token) async {
     _token = token;
@@ -115,6 +124,13 @@ class ApiClient {
   }
 
   ApiException _toApiException(DioException e) {
+    final wasAuthenticated =
+        e.requestOptions.headers.containsKey('Authorization');
+    if (e.response?.statusCode == 401 && wasAuthenticated) {
+      _token = null;
+      _prefs.remove(_tokenKey);
+      _unauthorizedController.add(null);
+    }
     final data = e.response?.data;
     if (data is Map) {
       final message = data['message']?.toString();
