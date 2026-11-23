@@ -11,6 +11,7 @@ import '../../core/models/transaction.dart';
 import '../../core/providers/auth_providers.dart';
 import '../../core/providers/business_providers.dart';
 import '../../core/providers/finance_providers.dart';
+import '../../core/providers/notification_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/bottom_nav.dart';
 import '../../widgets/cards.dart';
@@ -52,10 +53,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   void _refreshData() {
     final business = ref.read(currentBusinessProvider);
     if (business == null) return;
+    ref.invalidate(analyticsProvider(business.id));
     ref.invalidate(advancesProvider(business.id));
     ref.invalidate(transactionsProvider(business.id));
     ref.invalidate(walletProvider(business.id));
     ref.invalidate(businessDetailProvider(business.id));
+    ref.read(notificationInboxProvider.notifier).refreshUnreadCount();
   }
 
   void _onNavTap(BuildContext context, int index) {
@@ -100,24 +103,33 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final transactions = ref.watch(transactionsProvider(business.id)).value ??
         const <Transaction>[];
     final wallet = ref.watch(walletProvider(business.id)).value;
-    final available =
-        ref.watch(accessControllerProvider).assessment?.recommendedAdvanceAmountMinor ?? 0;
+    final analytics = ref.watch(analyticsProvider(business.id)).value;
+    final available = analytics?.availableAdvanceMinor ??
+        ref.watch(accessControllerProvider).assessment?.recommendedAdvanceAmountMinor ??
+        0;
 
-    final balance = wallet?.balanceMinor ?? business.walletBalanceMinor;
-    final todayEarnings = _todayEarnings(transactions);
-    final lastMonthEarnings = _lastMonthEarnings(transactions);
-    final outstanding = _outstanding(advances);
-    final latest = _latestAdvance(advances);
+    final balance = analytics?.availableBalanceMinor ??
+        wallet?.balanceMinor ??
+        business.walletBalanceMinor;
+    final todayEarnings =
+        analytics?.todayEarningsMinor ?? _todayEarnings(transactions);
+    final lastMonthEarnings =
+        analytics?.lastMonthEarningsMinor ?? _lastMonthEarnings(transactions);
+    final outstanding =
+        analytics?.outstandingBalanceMinor ?? _outstanding(advances);
+    final latest =
+        analytics != null ? analytics.latestAdvance : _latestAdvance(advances);
 
     final user = ref.watch(userProvider).value;
     final firstName = (user?.name.trim().split(RegExp(r'\s+')).first ?? '');
     final greeting = firstName.isEmpty ? 'there' : firstName;
+    final unreadNotifications = ref.watch(unreadNotificationCountProvider);
 
     return Scaffold(
       body: SafeArea(
         child: Column(
           children: [
-            _header(context, business, greeting),
+            _header(context, business, greeting, unreadNotifications),
             Expanded(
               child: RefreshIndicator(
                 color: QcashColors.green,
@@ -216,6 +228,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     BuildContext context,
     Business business,
     String greeting,
+    int unreadNotifications,
   ) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
@@ -243,15 +256,48 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const NotificationsScreen()),
             ),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: QcashColors.green.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.notifications_none,
-                  color: QcashColors.green),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: QcashColors.green.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.notifications_none,
+                      color: QcashColors.green),
+                ),
+                if (unreadNotifications > 0)
+                  Positioned(
+                    top: -3,
+                    right: -3,
+                    child: Container(
+                      constraints:
+                          const BoxConstraints(minWidth: 18, minHeight: 18),
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE53935),
+                        borderRadius: BorderRadius.circular(9),
+                        border: Border.all(color: Colors.white, width: 1.5),
+                      ),
+                      child: Center(
+                        child: Text(
+                          unreadNotifications > 9
+                              ? '9+'
+                              : '$unreadNotifications',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            height: 1.1,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ],

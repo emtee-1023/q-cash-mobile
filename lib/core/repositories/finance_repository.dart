@@ -1,6 +1,7 @@
 import '../api/api_client.dart';
 import '../models/advance.dart';
 import '../models/assessment.dart';
+import '../models/business_analytics.dart';
 import '../models/offer.dart';
 import '../models/repayment.dart';
 import '../models/transaction.dart';
@@ -27,6 +28,17 @@ class FinanceRepository {
           .toList();
     }
     return const [];
+  }
+
+  // ---- Analytics ----
+
+  Future<BusinessAnalytics> getAnalytics(int businessId) async {
+    final res = await _client.get('/businesses/$businessId/analytics');
+    final data = res.data;
+    if (data is Map && data['data'] is Map) {
+      return BusinessAnalytics.fromJson(data['data'] as Map<String, dynamic>);
+    }
+    throw ApiException('Unexpected analytics payload');
   }
 
   // ---- Assessments ----

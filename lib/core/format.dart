@@ -42,6 +42,18 @@ String formatDate(DateTime? dt, {bool withTime = false}) {
   return '$date, $hh:$mm';
 }
 
+/// Formats a timestamp relative to now, e.g. `Just now`, `5m ago`, `2d ago`,
+/// falling back to a short date after a week.
+String formatRelativeTime(DateTime? dt) {
+  if (dt == null) return '';
+  final difference = DateTime.now().difference(dt.toLocal());
+  if (difference.isNegative || difference.inSeconds < 60) return 'Just now';
+  if (difference.inMinutes < 60) return '${difference.inMinutes}m ago';
+  if (difference.inHours < 24) return '${difference.inHours}h ago';
+  if (difference.inDays < 7) return '${difference.inDays}d ago';
+  return formatDate(dt);
+}
+
 /// Formats a date as `dd/mm/yyyy`, e.g. `03/11/2008`.
 String formatDmy(DateTime? dt) {
   if (dt == null) return '—';
