@@ -14,7 +14,8 @@ class AccessRevenueScreen extends ConsumerStatefulWidget {
   const AccessRevenueScreen({super.key});
 
   @override
-  ConsumerState<AccessRevenueScreen> createState() => _AccessRevenueScreenState();
+  ConsumerState<AccessRevenueScreen> createState() =>
+      _AccessRevenueScreenState();
 }
 
 class _AccessRevenueScreenState extends ConsumerState<AccessRevenueScreen> {
@@ -45,7 +46,9 @@ class _AccessRevenueScreenState extends ConsumerState<AccessRevenueScreen> {
     if (business == null) return;
     setState(() => _error = null);
     try {
-      await ref.read(accessControllerProvider.notifier).createOffer(business.id);
+      await ref
+          .read(accessControllerProvider.notifier)
+          .createOffer(business.id);
       if (!mounted) return;
       Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => const AccessConfirmationScreen()),
@@ -76,7 +79,7 @@ class _AccessRevenueScreenState extends ConsumerState<AccessRevenueScreen> {
                   children: [
                     const SizedBox(height: 8),
                     if (assessment == null && _error == null)
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.symmetric(vertical: 80),
                         child: Column(
                           children: [
@@ -84,7 +87,7 @@ class _AccessRevenueScreenState extends ConsumerState<AccessRevenueScreen> {
                             SizedBox(height: 16),
                             Text(
                               'Checking your eligibility…',
-                              style: TextStyle(color: QcashColors.textGray),
+                              style: TextStyle(color: context.qc.muted),
                             ),
                           ],
                         ),
@@ -127,7 +130,9 @@ class _AccessRevenueScreenState extends ConsumerState<AccessRevenueScreen> {
                         Text(
                           _error!,
                           style: const TextStyle(
-                              color: Color(0xFFE53935), fontSize: 13),
+                            color: Color(0xFFE53935),
+                            fontSize: 13,
+                          ),
                         ),
                       ],
                       const SizedBox(height: 20),
@@ -160,7 +165,7 @@ class _AccessRevenueScreenState extends ConsumerState<AccessRevenueScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                border: Border.all(color: QcashColors.border),
+                border: Border.all(color: context.qc.border),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(Icons.chevron_left, size: 24),
@@ -169,13 +174,13 @@ class _AccessRevenueScreenState extends ConsumerState<AccessRevenueScreen> {
           const SizedBox(height: 24),
           Text.rich(
             TextSpan(
-              children: const [
+              children: [
                 TextSpan(
                   text: 'Cash ',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
-                    color: QcashColors.navy,
+                    color: context.qc.text,
                   ),
                 ),
                 TextSpan(
@@ -190,12 +195,12 @@ class _AccessRevenueScreenState extends ConsumerState<AccessRevenueScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Get an instant advance on your business earnings, with no interest.',
             style: TextStyle(
               fontSize: 14,
               height: 1.4,
-              color: QcashColors.textGray,
+              color: context.qc.muted,
             ),
           ),
         ],
@@ -239,8 +244,7 @@ class _AccessRevenueScreenState extends ConsumerState<AccessRevenueScreen> {
               ),
               const Spacer(),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: QcashColors.green,
                   borderRadius: BorderRadius.circular(6),

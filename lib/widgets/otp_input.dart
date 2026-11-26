@@ -4,11 +4,7 @@ import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
 
 class OtpInput extends StatefulWidget {
-  const OtpInput({
-    super.key,
-    required this.onChanged,
-    this.length = 6,
-  });
+  const OtpInput({super.key, required this.onChanged, this.length = 6});
 
   final ValueChanged<String> onChanged;
   final int length;
@@ -66,26 +62,29 @@ class _OtpInputState extends State<OtpInput> {
               LengthLimitingTextInputFormatter(1),
               FilteringTextInputFormatter.digitsOnly,
             ],
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: QcashColors.navy,
+              color: context.qc.text,
             ),
             decoration: InputDecoration(
               contentPadding: EdgeInsets.zero,
               filled: true,
-              fillColor: QcashColors.iconBg,
+              fillColor: context.qc.card,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: QcashColors.border),
+                borderSide: BorderSide(color: context.qc.border),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: QcashColors.border),
+                borderSide: BorderSide(color: context.qc.border),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: QcashColors.green, width: 1.5),
+                borderSide: const BorderSide(
+                  color: QcashColors.green,
+                  width: 1.5,
+                ),
               ),
             ),
           ),

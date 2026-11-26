@@ -54,7 +54,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } on ApiException catch (e) {
-      _showError(e.readable);
+      if (e.message.toLowerCase().contains('credentials are incorrect')) {
+        _showError('Incorrect phone number or password.');
+      } else {
+        _showError(e.message);
+      }
     } catch (_) {
       _showError('Login failed. Please try again.');
     } finally {
@@ -84,7 +88,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          border: Border.all(color: QcashColors.border),
+                          border: Border.all(color: context.qc.border),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(Icons.chevron_left, size: 24),
@@ -104,13 +108,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       const SizedBox(height: 76),
                       Text.rich(
                         TextSpan(
-                          children: const [
+                          children: [
                             TextSpan(
                               text: 'Karibu ',
                               style: TextStyle(
                                 fontSize: 34,
                                 fontWeight: FontWeight.w800,
-                                color: QcashColors.navy,
+                                color: context.qc.text,
                               ),
                             ),
                             TextSpan(
@@ -125,13 +129,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 48),
-                      const Text(
+                      Text(
                         'Welcome back! Enter your phone number and password to '
                         'sign in to your account.',
                         style: TextStyle(
                           fontSize: 14,
                           height: 1.4,
-                          color: QcashColors.textGray,
+                          color: context.qc.muted,
                         ),
                       ),
                       const SizedBox(height: 40),
@@ -155,7 +159,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   ? Icons.visibility_off_outlined
                                   : Icons.visibility_outlined,
                               size: 20,
-                              color: QcashColors.textGray,
+                              color: context.qc.muted,
                             ),
                             onPressed: () =>
                                 setState(() => _obscure = !_obscure),
@@ -192,9 +196,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
+                          Text(
                             "Don't have an account? ",
-                            style: TextStyle(color: QcashColors.textGray),
+                            style: TextStyle(color: context.qc.muted),
                           ),
                           TextButton(
                             onPressed: () => Navigator.of(context).push(
@@ -228,15 +232,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return InputDecoration(
       hintText: hint,
       filled: true,
-      fillColor: QcashColors.iconBg,
+      fillColor: context.qc.card,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: QcashColors.border),
+        borderSide: BorderSide(color: context.qc.border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: QcashColors.border),
+        borderSide: BorderSide(color: context.qc.border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),

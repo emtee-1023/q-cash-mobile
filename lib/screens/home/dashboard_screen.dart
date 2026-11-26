@@ -22,6 +22,7 @@ import '../financial/repayment_screen.dart';
 import '../financial/request_payment_screen.dart';
 import '../financial/transactions_screen.dart';
 import '../financial/wallet_screen.dart';
+import '../revenue/revenue_overview_screen.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -71,9 +72,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         );
         break;
       case 2:
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const AccessRevenueScreen()),
-        );
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const AccessRevenueScreen()));
         break;
       case 3:
         Navigator.of(context).pushReplacement(
@@ -93,22 +94,31 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final business = ref.watch(currentBusinessProvider);
     if (business == null) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator(color: QcashColors.green)),
+        body: Center(
+          child: CircularProgressIndicator(color: QcashColors.green),
+        ),
       );
     }
 
-    final detail = ref.watch(businessDetailProvider(business.id)).value ?? business;
+    final detail =
+        ref.watch(businessDetailProvider(business.id)).value ?? business;
     final advances =
         ref.watch(advancesProvider(business.id)).value ?? const <Advance>[];
-    final transactions = ref.watch(transactionsProvider(business.id)).value ??
+    final transactions =
+        ref.watch(transactionsProvider(business.id)).value ??
         const <Transaction>[];
     final wallet = ref.watch(walletProvider(business.id)).value;
     final analytics = ref.watch(analyticsProvider(business.id)).value;
-    final available = analytics?.availableAdvanceMinor ??
-        ref.watch(accessControllerProvider).assessment?.recommendedAdvanceAmountMinor ??
+    final available =
+        analytics?.availableAdvanceMinor ??
+        ref
+            .watch(accessControllerProvider)
+            .assessment
+            ?.recommendedAdvanceAmountMinor ??
         0;
 
-    final balance = analytics?.availableBalanceMinor ??
+    final balance =
+        analytics?.availableBalanceMinor ??
         wallet?.balanceMinor ??
         business.walletBalanceMinor;
     final todayEarnings =
@@ -117,8 +127,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         analytics?.lastMonthEarningsMinor ?? _lastMonthEarnings(transactions);
     final outstanding =
         analytics?.outstandingBalanceMinor ?? _outstanding(advances);
-    final latest =
-        analytics != null ? analytics.latestAdvance : _latestAdvance(advances);
+    final latest = analytics != null
+        ? analytics.latestAdvance
+        : _latestAdvance(advances);
 
     final user = ref.watch(userProvider).value;
     final firstName = (user?.name.trim().split(RegExp(r'\s+')).first ?? '');
@@ -147,7 +158,27 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       const SizedBox(height: 14),
                       _advanceCard(context, available),
                       const SizedBox(height: 20),
-                      const SectionLabel('Overview'),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const SectionLabel('Overview'),
+                          GestureDetector(
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const RevenueOverviewScreen(),
+                              ),
+                            ),
+                            child: const Text(
+                              'Analytics',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: QcashColors.green,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                       Row(
                         children: [
                           Expanded(
@@ -186,7 +217,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           GestureDetector(
                             onTap: () => Navigator.of(context).push(
                               MaterialPageRoute(
-                                  builder: (_) => const TransactionsScreen()),
+                                builder: (_) => const TransactionsScreen(),
+                              ),
                             ),
                             child: const Text(
                               'See all',
@@ -200,13 +232,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         ],
                       ),
                       if (transactions.isEmpty)
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.symmetric(vertical: 24),
                           child: Text(
                             'No transactions yet. Once your Paybill is connected, '
                             'transactions will appear here.',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: QcashColors.textGray),
+                            style: TextStyle(color: context.qc.muted),
                           ),
                         )
                       else
@@ -241,10 +273,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               children: [
                 Text(
                   'Hi, $greeting',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
-                    color: QcashColors.navy,
+                    color: context.qc.text,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -266,16 +298,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     color: QcashColors.green.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.notifications_none,
-                      color: QcashColors.green),
+                  child: const Icon(
+                    Icons.notifications_none,
+                    color: QcashColors.green,
+                  ),
                 ),
                 if (unreadNotifications > 0)
                   Positioned(
                     top: -3,
                     right: -3,
                     child: Container(
-                      constraints:
-                          const BoxConstraints(minWidth: 18, minHeight: 18),
+                      constraints: const BoxConstraints(
+                        minWidth: 18,
+                        minHeight: 18,
+                      ),
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       decoration: BoxDecoration(
                         color: const Color(0xFFE53935),
@@ -312,9 +348,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       child: Container(
         padding: const EdgeInsets.fromLTRB(6, 5, 8, 5),
         decoration: BoxDecoration(
-          color: QcashColors.iconBg,
+          color: context.qc.card,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: QcashColors.border),
+          border: Border.all(color: context.qc.border),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -326,24 +362,26 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 color: QcashColors.green.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.storefront, size: 14,
-                  color: QcashColors.green),
+              child: const Icon(
+                Icons.storefront,
+                size: 14,
+                color: QcashColors.green,
+              ),
             ),
             const SizedBox(width: 8),
             Flexible(
               child: Text(
                 business.businessName,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: QcashColors.navy,
+                  color: context.qc.text,
                 ),
               ),
             ),
             const SizedBox(width: 2),
-            const Icon(Icons.keyboard_arrow_down,
-                size: 18, color: QcashColors.textGray),
+            Icon(Icons.keyboard_arrow_down, size: 18, color: context.qc.muted),
           ],
         ),
       ),
@@ -355,7 +393,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       context: context,
       showDragHandle: true,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: context.qc.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -376,14 +414,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.only(bottom: 12),
                         child: Text(
                           'Switch business',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: QcashColors.navy,
+                            color: context.qc.text,
                           ),
                         ),
                       ),
@@ -392,8 +430,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: businesses
-                                .map((b) => _businessOption(
-                                    sheetContext, sheetRef, b, currentId))
+                                .map(
+                                  (b) => _businessOption(
+                                    sheetContext,
+                                    sheetRef,
+                                    b,
+                                    currentId,
+                                  ),
+                                )
                                 .toList(),
                           ),
                         ),
@@ -432,12 +476,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           decoration: BoxDecoration(
             color: selected
                 ? QcashColors.green.withValues(alpha: 0.08)
-                : QcashColors.iconBg,
+                : context.qc.card,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: selected
                   ? QcashColors.green.withValues(alpha: 0.5)
-                  : QcashColors.border,
+                  : context.qc.border,
             ),
           ),
           child: Row(
@@ -462,27 +506,27 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     Text(
                       business.businessName,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: QcashColors.navy,
+                        color: context.qc.text,
                       ),
                     ),
                     if (business.typeName != null &&
                         business.typeName!.isNotEmpty)
                       Text(
                         business.typeName!,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: QcashColors.textGray,
-                        ),
+                        style: TextStyle(fontSize: 12, color: context.qc.muted),
                       ),
                   ],
                 ),
               ),
               if (selected)
-                const Icon(Icons.check_circle,
-                    color: QcashColors.green, size: 20),
+                const Icon(
+                  Icons.check_circle,
+                  color: QcashColors.green,
+                  size: 20,
+                ),
             ],
           ),
         ),
@@ -539,8 +583,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.account_balance_wallet,
-                  color: Colors.white, size: 18),
+              const Icon(
+                Icons.account_balance_wallet,
+                color: Colors.white,
+                size: 18,
+              ),
               const SizedBox(width: 8),
               const Text(
                 'Business Wallet',
@@ -552,8 +599,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               ),
               const Spacer(),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(6),
@@ -603,8 +649,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           Row(
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(6),
@@ -746,9 +794,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           child: _walletAction(
             Icons.arrow_upward,
             'Withdraw',
-            () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const WalletScreen()),
-            ),
+            () => Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => const WalletScreen())),
           ),
         ),
         const SizedBox(width: 12),
@@ -844,13 +891,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             style: FilledButton.styleFrom(
               backgroundColor: QcashColors.green,
               foregroundColor: Colors.white,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              textStyle:
-                  const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+              textStyle: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const AccessRevenueScreen()),
@@ -866,7 +914,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: QcashColors.iconBg,
+        color: context.qc.card,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -878,20 +926,23 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               color: QcashColors.purpleAlt.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.south_east,
-                color: QcashColors.purpleAlt, size: 20),
+            child: const Icon(
+              Icons.south_east,
+              color: QcashColors.purpleAlt,
+              size: 20,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Latest cash advance',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: QcashColors.textGray,
+                    color: context.qc.muted,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -899,10 +950,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   latest == null
                       ? 'No advances yet'
                       : formatMinor(latest.principalAmountMinor),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: QcashColors.navy,
+                    color: context.qc.text,
                   ),
                 ),
               ],
@@ -923,10 +974,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 const SizedBox(height: 2),
                 Text(
                   formatDate(latest.createdAt ?? latest.disbursedAt),
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: QcashColors.textGray,
-                  ),
+                  style: TextStyle(fontSize: 11, color: context.qc.muted),
                 ),
               ],
             ),
@@ -972,7 +1020,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   Advance? _latestAdvance(List<Advance> advances) {
     if (advances.isEmpty) return null;
-    final sorted = [...advances]..sort((a, b) {
+    final sorted = [...advances]
+      ..sort((a, b) {
         final ad = a.createdAt ?? a.disbursedAt ?? DateTime(0);
         final bd = b.createdAt ?? b.disbursedAt ?? DateTime(0);
         return bd.compareTo(ad);
@@ -982,7 +1031,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   Widget _transactionTile(Transaction t) {
     return TransactionTile(
-      title: t.counterpartyName ??
+      title:
+          t.counterpartyName ??
           (t.isInflow ? 'Paybill Deposit' : 'M-Pesa Outflow'),
       subtitle: formatDate(t.transactionTime),
       amount: formatMinorAmount(t.amountMinor),

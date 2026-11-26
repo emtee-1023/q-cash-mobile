@@ -45,7 +45,12 @@ class AuthRepository {
       'phone_number': phoneNumber,
       'otp': otp,
     });
-    return _message(res.data);
+    final data = res.data;
+    if (data is Map) {
+      final token = data['token']?.toString();
+      if (token != null && token.isNotEmpty) await _client.setToken(token);
+    }
+    return _message(data);
   }
 
   Future<String> resendOtp({

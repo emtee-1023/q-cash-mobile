@@ -25,19 +25,22 @@ class WelcomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 40),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 18,
+                ),
                 decoration: BoxDecoration(
-                  color: QcashColors.iconBg,
+                  color: context.qc.card,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Text(
+                child: Text(
                   'Zero-interest early access to your business revenue, '
                   'powered by your M-Pesa transaction data.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 15,
                     height: 1.45,
-                    color: QcashColors.navy,
+                    color: context.qc.text,
                   ),
                 ),
               ),
@@ -51,9 +54,9 @@ class WelcomeScreen extends StatelessWidget {
               const SizedBox(height: 14),
               OutlineButton(
                 label: 'Log In',
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                ),
+                onPressed: () => Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => const LoginScreen())),
               ),
               const SizedBox(height: 24),
             ],

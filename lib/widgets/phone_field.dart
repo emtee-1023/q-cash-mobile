@@ -51,7 +51,8 @@ class PhoneField extends StatelessWidget {
       controller: controller,
       keyboardType: TextInputType.phone,
       inputFormatters: [KenyanPhoneInputFormatter()],
-      validator: validator ??
+      validator:
+          validator ??
           (v) {
             final normalized = normalizeKenyanPhone(v ?? '');
             if (normalized == null) return 'Enter a valid phone number';
@@ -61,18 +62,20 @@ class PhoneField extends StatelessWidget {
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        floatingLabelStyle: const TextStyle(color: QcashColors.navy),
+        floatingLabelStyle: TextStyle(color: context.qc.text),
         filled: true,
-        fillColor: QcashColors.iconBg,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        fillColor: context.qc.card,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: QcashColors.border),
+          borderSide: BorderSide(color: context.qc.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: QcashColors.border),
+          borderSide: BorderSide(color: context.qc.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

@@ -151,6 +151,36 @@ class NotificationInboxNotifier extends AsyncNotifier<NotificationInbox> {
     state = AsyncValue.data(inbox.copyWith(items: items, unreadCount: 0));
   }
 
+  /// Refreshes the newest page without flashing a loading state and merges
+  /// new items into any pages already loaded. Safe to call from a background
+  /// poll.
+  Future<void> refreshInBackground() async {
+    final inbox = state.value;
+    if (inbox == null) return;
+    try {
+      final repository = ref.read(notificationRepositoryProvider);
+      final page = await repository.list(perPage: _perPage);
+      final unread = await repository.unreadCount();
+      final current = state.value;
+      if (current == null) return;
+      final fetchedIds = page.items.map((n) => n.id).toSet();
+      final items = [
+        ...page.items,
+        ...current.items.where((n) => !fetchedIds.contains(n.id)),
+      ];
+      state = AsyncValue.data(
+        current.copyWith(
+          items: items,
+          unreadCount: unread,
+          lastPage: page.lastPage,
+          total: page.total,
+        ),
+      );
+    } catch (_) {
+      // A failed background refresh should never surface an error to the user.
+    }
+  }
+
   /// Refreshes only the badge count, leaving the loaded list intact. Safe to
   /// call from a background poll.
   Future<void> refreshUnreadCount() async {

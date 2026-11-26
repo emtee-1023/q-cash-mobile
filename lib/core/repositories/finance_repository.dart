@@ -147,6 +147,36 @@ class FinanceRepository {
     throw ApiException('Unexpected repayment payload');
   }
 
+  Future<RepaymentCollection> repayFromWallet(
+    int businessId, {
+    required int amountMinor,
+    required String idempotencyKey,
+  }) async {
+    final res = await _client.post('/businesses/$businessId/repayments/wallet', data: {
+      'amount_minor': amountMinor,
+      'idempotency_key': idempotencyKey,
+    });
+    final data = res.data;
+    if (data is Map && data['data'] is Map) {
+      return RepaymentCollection.fromJson(data['data'] as Map<String, dynamic>);
+    }
+    throw ApiException('Unexpected repayment payload');
+  }
+
+  Future<String> repayViaMpesa(
+    int businessId, {
+    required String phoneNumber,
+    required int amountMinor,
+  }) async {
+    final res = await _client.post('/businesses/$businessId/repayments/mpesa', data: {
+      'phone_number': phoneNumber,
+      'amount_minor': amountMinor,
+    });
+    return res.data is Map
+        ? (res.data['message']?.toString() ?? 'STK push initiated.')
+        : 'STK push initiated.';
+  }
+
   // ---- STK push ----
 
   Future<String> initiateStkPush(

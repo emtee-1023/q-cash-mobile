@@ -6,6 +6,8 @@ class RepaymentAllocation {
     required this.repaymentCollectionId,
     required this.advanceId,
     required this.amountMinor,
+    this.feeAmountMinor = 0,
+    this.principalAmountMinor = 0,
     this.createdAt,
     this.updatedAt,
   });
@@ -14,6 +16,8 @@ class RepaymentAllocation {
   final int repaymentCollectionId;
   final int advanceId;
   final int amountMinor;
+  final int feeAmountMinor;
+  final int principalAmountMinor;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -23,6 +27,8 @@ class RepaymentAllocation {
         repaymentCollectionId: toMinor(json['repayment_collection_id']),
         advanceId: toMinor(json['advance_id']),
         amountMinor: toMinor(json['amount_minor']),
+        feeAmountMinor: toMinor(json['fee_amount_minor']),
+        principalAmountMinor: toMinor(json['principal_amount_minor']),
         createdAt: parseDateTime(json['created_at']),
         updatedAt: parseDateTime(json['updated_at']),
       );
@@ -70,7 +76,9 @@ class RepaymentCollection {
         id: toMinor(json['id']),
         publicId: json['public_id']?.toString() ?? '',
         businessId: toMinor(json['business_id']),
-        sourceTransactionId: json['source_transaction_id'] == null ? null : toMinor(json['source_transaction_id']),
+        sourceTransactionId: json['source_transaction_id'] == null
+            ? null
+            : toMinor(json['source_transaction_id']),
         collectionMethod: json['collection_method']?.toString() ?? '',
         provider: json['provider']?.toString(),
         providerReference: json['provider_reference']?.toString(),
@@ -82,8 +90,11 @@ class RepaymentCollection {
         processedAt: parseDateTime(json['processed_at']),
         allocations: json['allocations'] is List
             ? (json['allocations'] as List)
-                .map((e) => RepaymentAllocation.fromJson(e as Map<String, dynamic>))
-                .toList()
+                  .map(
+                    (e) =>
+                        RepaymentAllocation.fromJson(e as Map<String, dynamic>),
+                  )
+                  .toList()
             : const [],
         createdAt: parseDateTime(json['created_at']),
         updatedAt: parseDateTime(json['updated_at']),

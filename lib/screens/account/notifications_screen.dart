@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -17,19 +19,32 @@ class NotificationsScreen extends ConsumerStatefulWidget {
 
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   final _scrollController = ScrollController();
+  Timer? _pollTimer;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _pollTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      _refreshInBackground();
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _refreshInBackground();
+    });
   }
 
   @override
   void dispose() {
+    _pollTimer?.cancel();
     _scrollController
       ..removeListener(_onScroll)
       ..dispose();
     super.dispose();
+  }
+
+  void _refreshInBackground() {
+    ref.read(notificationInboxProvider.notifier).refreshInBackground();
   }
 
   void _onScroll() {
@@ -160,7 +175,7 @@ class _NotificationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final visuals = _visualsFor(notification.event);
+    final visuals = _visualsFor(context, notification.event);
     final unread = !notification.isRead;
 
     return InkWell(
@@ -171,12 +186,12 @@ class _NotificationTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: unread
               ? QcashColors.green.withValues(alpha: 0.06)
-              : QcashColors.iconBg,
+              : context.qc.card,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: unread
                 ? QcashColors.green.withValues(alpha: 0.25)
-                : QcashColors.border,
+                : context.qc.border,
           ),
         ),
         child: Row(
@@ -207,17 +222,14 @@ class _NotificationTile extends StatelessWidget {
                             fontWeight: unread
                                 ? FontWeight.w700
                                 : FontWeight.w600,
-                            color: QcashColors.navy,
+                            color: context.qc.text,
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         formatRelativeTime(notification.createdAt),
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: QcashColors.textGray,
-                        ),
+                        style: TextStyle(fontSize: 11, color: context.qc.muted),
                       ),
                     ],
                   ),
@@ -225,10 +237,10 @@ class _NotificationTile extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       notification.body,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         height: 1.35,
-                        color: QcashColors.textGray,
+                        color: context.qc.muted,
                       ),
                     ),
                   ],
@@ -253,7 +265,7 @@ class _NotificationTile extends StatelessWidget {
     );
   }
 
-  _NotificationVisuals _visualsFor(String event) {
+  _NotificationVisuals _visualsFor(BuildContext context, String event) {
     switch (event) {
       case 'payment_received':
         return const _NotificationVisuals(
@@ -271,9 +283,9 @@ class _NotificationTile extends StatelessWidget {
           color: QcashColors.purpleAlt,
         );
       default:
-        return const _NotificationVisuals(
+        return _NotificationVisuals(
           icon: Icons.notifications_none,
-          color: QcashColors.navy,
+          color: context.qc.text,
         );
     }
   }
@@ -297,10 +309,10 @@ class _EmptyState extends StatelessWidget {
       color: QcashColors.green,
       onRefresh: onRefresh,
       child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: const [
+        physics: AlwaysScrollableScrollPhysics(),
+        children: [
           SizedBox(height: 120),
-          Icon(Icons.notifications_none, size: 48, color: QcashColors.textGray),
+          Icon(Icons.notifications_none, size: 48, color: context.qc.muted),
           SizedBox(height: 12),
           Text(
             'No notifications yet',
@@ -308,14 +320,14 @@ class _EmptyState extends StatelessWidget {
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: QcashColors.navy,
+              color: context.qc.text,
             ),
           ),
           SizedBox(height: 4),
           Text(
             'Payments, withdrawals and advances will appear here.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13, color: QcashColors.textGray),
+            style: TextStyle(fontSize: 13, color: context.qc.muted),
           ),
         ],
       ),
@@ -337,16 +349,12 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.cloud_off_outlined,
-              size: 44,
-              color: QcashColors.textGray,
-            ),
+            Icon(Icons.cloud_off_outlined, size: 44, color: context.qc.muted),
             const SizedBox(height: 12),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: QcashColors.textGray),
+              style: TextStyle(color: context.qc.muted),
             ),
             const SizedBox(height: 16),
             FilledButton(

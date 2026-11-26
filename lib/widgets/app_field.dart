@@ -44,10 +44,10 @@ class AppTextField extends StatelessWidget {
             padding: const EdgeInsets.only(left: 4, bottom: 8),
             child: Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: QcashColors.navy,
+                color: context.qc.text,
               ),
             ),
           ),
@@ -69,10 +69,10 @@ class AppTextField extends StatelessWidget {
                       padding: const EdgeInsets.only(left: 14, right: 4),
                       child: Text(
                         prefixText!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: QcashColors.textGray,
+                          color: context.qc.muted,
                         ),
                       ),
                     ),
@@ -115,10 +115,10 @@ class AppDropdownField extends StatelessWidget {
             padding: const EdgeInsets.only(left: 4, bottom: 8),
             child: Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: QcashColors.navy,
+                color: context.qc.text,
               ),
             ),
           ),
@@ -127,7 +127,10 @@ class AppDropdownField extends StatelessWidget {
             isExpanded: true,
             hint: Text(hint),
             decoration: InputDecoration(
-              suffixIcon: const Icon(Icons.keyboard_arrow_down, color: QcashColors.textGray),
+              suffixIcon: Icon(
+                Icons.keyboard_arrow_down,
+                color: context.qc.muted,
+              ),
             ),
             items: items
                 .map((e) => DropdownMenuItem(value: e, child: Text(e)))
@@ -174,10 +177,10 @@ class AppSelectField<T> extends StatelessWidget {
             padding: const EdgeInsets.only(left: 4, bottom: 8),
             child: Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: QcashColors.navy,
+                color: context.qc.text,
               ),
             ),
           ),
@@ -202,11 +205,12 @@ class AppSelectField<T> extends StatelessWidget {
                         ),
                       ),
                     )
-                  : const Icon(Icons.keyboard_arrow_down,
-                      color: QcashColors.textGray),
+                  : Icon(Icons.keyboard_arrow_down, color: context.qc.muted),
             ),
             items: items
-                .map((e) => DropdownMenuItem<T>(value: e, child: Text(labelOf(e))))
+                .map(
+                  (e) => DropdownMenuItem<T>(value: e, child: Text(labelOf(e))),
+                )
                 .toList(),
             onChanged: disabled ? null : onChanged,
           ),

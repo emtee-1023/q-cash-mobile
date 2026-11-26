@@ -33,9 +33,9 @@ class RepaymentScreen extends ConsumerWidget {
         );
         break;
       case 2:
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const AccessRevenueScreen()),
-        );
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const AccessRevenueScreen()));
         break;
       case 3:
         break;
@@ -52,10 +52,12 @@ class RepaymentScreen extends ConsumerWidget {
     final business = ref.watch(currentBusinessProvider);
     final advances = business == null
         ? const <Advance>[]
-        : ref.watch(advancesProvider(business.id)).value ??
-            const <Advance>[];
+        : ref.watch(advancesProvider(business.id)).value ?? const <Advance>[];
 
-    final outstanding = advances.fold<int>(0, (s, a) => s + a.outstandingBalanceMinor);
+    final outstanding = advances.fold<int>(
+      0,
+      (s, a) => s + a.outstandingBalanceMinor,
+    );
     final repaid = advances.fold<int>(0, (s, a) => s + a.amountRepaidMinor);
     final total = outstanding + repaid;
     final progress = total == 0 ? 0.0 : repaid / total;
@@ -74,103 +76,125 @@ class RepaymentScreen extends ConsumerWidget {
           children: [
             const ScreenHeader(title: 'Repayment'),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: StatCard(
-                            label: 'Outstanding',
-                            value: formatMinor(outstanding),
-                            icon: Icons.receipt_long_outlined,
-                            iconColor: QcashColors.orange,
+              child: RefreshIndicator(
+                color: QcashColors.green,
+                onRefresh: () async {
+                  if (business != null) {
+                    ref.invalidate(advancesProvider(business.id));
+                    ref.invalidate(walletProvider(business.id));
+                  }
+                  await Future<void>.delayed(const Duration(milliseconds: 300));
+                },
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: StatCard(
+                              label: 'Outstanding',
+                              value: formatMinor(outstanding),
+                              icon: Icons.receipt_long_outlined,
+                              iconColor: QcashColors.orange,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: StatCard(
+                              label: 'Repaid',
+                              value: formatMinor(repaid),
+                              icon: Icons.check_circle_outline,
+                              iconColor: QcashColors.green,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      const SectionLabel('Repayment Progress'),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: LinearProgressIndicator(
+                          value: progress,
+                          minHeight: 12,
+                          backgroundColor: context.qc.divider,
+                          valueColor: const AlwaysStoppedAnimation(
+                            QcashColors.green,
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: StatCard(
-                            label: 'Repaid',
-                            value: formatMinor(repaid),
-                            icon: Icons.check_circle_outline,
-                            iconColor: QcashColors.green,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    const SectionLabel('Repayment Progress'),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        minHeight: 12,
-                        backgroundColor: QcashColors.divider,
-                        valueColor: const AlwaysStoppedAnimation(QcashColors.green),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${(progress * 100).round()}% repaid',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: QcashColors.textGray,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    InfoCard(
-                      children: [
-                        KeyValueRow(
-                          label: 'Next Expected Repayment',
-                          value: nextDue == null ? '—' : formatDate(nextDue),
-                        ),
-                        KeyValueRow(
-                          label: 'Active Advances',
-                          value: '${advances.length}',
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    const SectionLabel('Your Advances'),
-                    if (advances.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20),
-                        child: Text(
-                          'No advances yet. Access revenue to get started.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: QcashColors.textGray),
-                        ),
-                      )
-                    else ...[
-                      PrimaryButton(
-                        label: 'Make a Repayment',
-                        color: QcashColors.green,
-                        onPressed: outstanding > 0
-                            ? () => Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                      builder: (_) => const RepayScreen()),
-                                )
-                            : null,
+                      const SizedBox(height: 8),
+                      Text(
+                        '${(progress * 100).round()}% repaid',
+                        style: TextStyle(fontSize: 13, color: context.qc.muted),
                       ),
                       const SizedBox(height: 16),
-                      ...advances.map(
-                        (a) => TransactionTile(
-                          title: 'Advance ${a.publicId}',
-                          subtitle: 'Due ${formatDate(a.dueAt)}',
-                          amount: formatMinorAmount(a.outstandingBalanceMinor),
-                          positive: false,
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => RepaymentDetailsScreen(advance: a),
+                      const CalloutBox(
+                        text:
+                            'Repayments are deducted automatically from eligible '
+                            'incoming payments. You can also repay early from '
+                            'your wallet or via M-Pesa.',
+                        icon: Icons.autorenew,
+                      ),
+                      const SizedBox(height: 20),
+                      InfoCard(
+                        children: [
+                          KeyValueRow(
+                            label: 'Next Expected Repayment',
+                            value: nextDue == null ? '—' : formatDate(nextDue),
+                          ),
+                          KeyValueRow(
+                            label: 'Active Advances',
+                            value: '${advances.length}',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      const SectionLabel('Your Advances'),
+                      if (advances.isEmpty)
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 20),
+                          child: Text(
+                            'No advances yet. Access revenue to get started.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: context.qc.muted),
+                          ),
+                        )
+                      else ...[
+                        PrimaryButton(
+                          label: 'Make a Repayment',
+                          color: QcashColors.green,
+                          onPressed: outstanding > 0
+                              ? () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const RepayScreen(),
+                                  ),
+                                )
+                              : null,
+                        ),
+                        const SizedBox(height: 16),
+                        ...advances.map(
+                          (a) => TransactionTile(
+                            title: 'Advance ${a.publicId}',
+                            subtitle: 'Due ${formatDate(a.dueAt)}',
+                            amount: formatMinorAmount(
+                              a.outstandingBalanceMinor,
+                            ),
+                            positive: false,
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    RepaymentDetailsScreen(advance: a),
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                      ],
+                      const SizedBox(height: 12),
                     ],
-                    const SizedBox(height: 12),
-                  ],
+                  ),
                 ),
               ),
             ),

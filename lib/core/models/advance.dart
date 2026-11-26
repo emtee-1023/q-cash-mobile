@@ -11,6 +11,8 @@ class Advance {
     required this.feeAmountMinor,
     required this.totalRepayableMinor,
     required this.amountRepaidMinor,
+    this.feeRepaidMinor = 0,
+    this.principalRepaidMinor = 0,
     required this.outstandingBalanceMinor,
     required this.recoveryRateBps,
     required this.maximumRepaymentDays,
@@ -33,6 +35,8 @@ class Advance {
   final int feeAmountMinor;
   final int totalRepayableMinor;
   final int amountRepaidMinor;
+  final int feeRepaidMinor;
+  final int principalRepaidMinor;
   final int outstandingBalanceMinor;
   final int recoveryRateBps;
   final int maximumRepaymentDays;
@@ -55,6 +59,8 @@ class Advance {
         feeAmountMinor: toMinor(json['fee_amount_minor']),
         totalRepayableMinor: toMinor(json['total_repayable_minor']),
         amountRepaidMinor: toMinor(json['amount_repaid_minor']),
+        feeRepaidMinor: toMinor(json['fee_repaid_minor']),
+        principalRepaidMinor: toMinor(json['principal_repaid_minor']),
         outstandingBalanceMinor: toMinor(json['outstanding_balance_minor']),
         recoveryRateBps: toMinor(json['recovery_rate_bps']),
         maximumRepaymentDays: toMinor(json['maximum_repayment_days']),

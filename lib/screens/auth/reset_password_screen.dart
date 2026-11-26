@@ -17,7 +17,8 @@ class ResetPasswordScreen extends ConsumerStatefulWidget {
   final String phone;
 
   @override
-  ConsumerState<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
+  ConsumerState<ResetPasswordScreen> createState() =>
+      _ResetPasswordScreenState();
 }
 
 class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
@@ -45,7 +46,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     }
     setState(() => _busy = true);
     try {
-      await ref.read(authControllerProvider.notifier).resetPassword(
+      await ref
+          .read(authControllerProvider.notifier)
+          .resetPassword(
             phoneNumber: widget.phone,
             otp: _code,
             password: _password.text,
@@ -53,7 +56,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
           );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password reset successfully. Please log in.')),
+        const SnackBar(
+          content: Text('Password reset successfully. Please log in.'),
+        ),
       );
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -68,10 +73,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
   Future<void> _resend() async {
     try {
-      await ref.read(authControllerProvider.notifier).resendOtp(
-            purpose: 'password_reset',
-            phoneNumber: widget.phone,
-          );
+      await ref
+          .read(authControllerProvider.notifier)
+          .resendOtp(purpose: 'password_reset', phoneNumber: widget.phone);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('A new code has been sent.')),
@@ -100,7 +104,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               Center(
                 child: Text(
                   'Code sent to ${formatKenyanPhone(widget.phone)}',
-                  style: const TextStyle(fontSize: 14, color: QcashColors.textGray),
+                  style: TextStyle(fontSize: 14, color: context.qc.muted),
                 ),
               ),
               const SizedBox(height: 28),
@@ -147,17 +151,17 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   InputDecoration _decoration(String label) {
     return InputDecoration(
       labelText: label,
-      floatingLabelStyle: const TextStyle(color: QcashColors.navy),
+      floatingLabelStyle: TextStyle(color: context.qc.text),
       filled: true,
-      fillColor: QcashColors.iconBg,
+      fillColor: context.qc.card,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: QcashColors.border),
+        borderSide: BorderSide(color: context.qc.border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: QcashColors.border),
+        borderSide: BorderSide(color: context.qc.border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
