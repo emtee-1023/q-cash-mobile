@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/access_fee.dart';
 import '../../core/api/api_client.dart';
 import '../../core/format.dart';
 import '../../core/providers/business_providers.dart';
@@ -41,14 +42,14 @@ class _AccessRevenueScreenState extends ConsumerState<AccessRevenueScreen> {
     }
   }
 
-  Future<void> _continue() async {
+  Future<void> _continue(int requestedAmountMinor) async {
     final business = ref.read(currentBusinessProvider);
     if (business == null) return;
     setState(() => _error = null);
     try {
       await ref
           .read(accessControllerProvider.notifier)
-          .createOffer(business.id);
+          .createOffer(business.id, requestedAmountMinor: requestedAmountMinor);
       if (!mounted) return;
       Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => const AccessConfirmationScreen()),
@@ -65,6 +66,8 @@ class _AccessRevenueScreenState extends ConsumerState<AccessRevenueScreen> {
     final access = ref.watch(accessControllerProvider);
     final assessment = access.assessment;
     final available = assessment?.recommendedAdvanceAmountMinor ?? 0;
+    final fee = accessFeeMinor(available);
+    final received = available - fee < 0 ? 0 : available - fee;
 
     return Scaffold(
       body: SafeArea(
@@ -100,10 +103,10 @@ class _AccessRevenueScreenState extends ConsumerState<AccessRevenueScreen> {
                     ] else ...[
                       _advanceHero(available),
                       const SizedBox(height: 16),
-                      const CalloutBox(
+                      CalloutBox(
                         text:
-                            'Zero interest. Repaid automatically from your future '
-                            'sales as they come in.',
+                            'A ${formatBps(qcashAccessFeeBps)} access fee is '
+                            'deducted upfront. You repay the full advance.',
                         icon: Icons.schedule,
                       ),
                       const SizedBox(height: 16),
@@ -111,18 +114,26 @@ class _AccessRevenueScreenState extends ConsumerState<AccessRevenueScreen> {
                         children: [
                           KeyValueRow(
                             label: 'You receive',
-                            value: formatMinor(available),
+                            value: formatMinor(received),
+                          ),
+                          KeyValueRow(
+                            label:
+                                'Access fee '
+                                '(${formatBps(qcashAccessFeeBps)})',
+                            value: formatMinor(fee),
                           ),
                           KeyValueRow(
                             label: 'You repay',
                             value: formatMinor(available),
                           ),
                           const KeyValueRow(label: 'Interest', value: '0%'),
-                          if (assessment?.maximumRepaymentDays != null)
-                            KeyValueRow(
-                              label: 'Repayment window',
-                              value: '${assessment!.maximumRepaymentDays} days',
-                            ),
+                          KeyValueRow(
+                            label: 'Repayment window',
+                            value:
+                                'Up to '
+                                '${cappedRepaymentDays(assessment?.maximumRepaymentDays)} '
+                                'days',
+                          ),
                         ],
                       ),
                       if (_error != null) ...[
@@ -139,7 +150,9 @@ class _AccessRevenueScreenState extends ConsumerState<AccessRevenueScreen> {
                       PrimaryButton(
                         label: 'Continue',
                         color: QcashColors.green,
-                        onPressed: available > 0 ? _continue : null,
+                        onPressed: available > 0
+                            ? () => _continue(available)
+                            : null,
                       ),
                     ],
                     const SizedBox(height: 24),
@@ -196,7 +209,7 @@ class _AccessRevenueScreenState extends ConsumerState<AccessRevenueScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Get an instant advance on your business earnings, with no interest.',
+            'Get an instant advance on your business earnings.',
             style: TextStyle(
               fontSize: 14,
               height: 1.4,

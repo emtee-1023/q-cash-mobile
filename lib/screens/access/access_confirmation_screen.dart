@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/access_fee.dart';
 import '../../core/api/api_client.dart';
 import '../../core/format.dart';
+import '../../core/providers/business_providers.dart';
 import '../../core/providers/finance_providers.dart';
+import '../../core/providers/notification_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/cards.dart';
@@ -25,20 +28,29 @@ class _AccessConfirmationScreenState
     setState(() => _busy = true);
     try {
       final controller = ref.read(accessControllerProvider.notifier);
-      await controller.acceptOffer();
-      try {
-        await controller.disburse();
-      } catch (_) {
-        // The advance exists even if disbursement needs to be retried.
+      var advance =
+          ref.read(accessControllerProvider).advance ??
+          await controller.acceptOffer();
+      if (advance.status == 'pending') {
+        advance = await controller.approve();
+      }
+      if (advance.status == 'approved') {
+        advance = await controller.disburse();
       }
       if (!mounted) return;
+
+      ref.invalidate(walletProvider(advance.businessId));
+      ref.invalidate(advancesProvider(advance.businessId));
+      ref.invalidate(analyticsProvider(advance.businessId));
+      ref.invalidate(notificationInboxProvider);
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const AccessSuccessScreen()),
       );
     } on ApiException catch (e) {
       _showError(e.readable);
     } catch (_) {
-      _showError('Could not accept your advance. Please try again.');
+      _showError('Could not complete your advance. Please try again.');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -62,6 +74,7 @@ class _AccessConfirmationScreenState
     final received = offer.offeredAmountMinor;
     final fee = offer.feeAmountMinor;
     final repayable = offer.totalRepayableMinor;
+    final feeBps = repayable <= 0 ? 0 : (fee * 10000 / repayable).round();
     final dueDate = offer.offeredAt.add(
       Duration(days: offer.maximumRepaymentDays),
     );
@@ -82,28 +95,32 @@ class _AccessConfirmationScreenState
                     const SizedBox(height: 16),
                     const CalloutBox(
                       text:
-                          'Repayments are collected automatically from your '
-                          'future sales as they come in.',
-                      icon: Icons.sync,
+                          'The access fee is deducted upfront. Your advance is '
+                          'credited to your QCash wallet and you repay the full '
+                          'advance amount.',
+                      icon: Icons.account_balance_wallet_outlined,
                     ),
                     const SizedBox(height: 16),
                     InfoCard(
                       children: [
                         KeyValueRow(
-                          label: 'Advance amount',
+                          label: 'You receive',
                           value: formatMinor(received),
                         ),
                         KeyValueRow(
-                          label: 'Processing fee',
+                          label: 'Access fee (${formatBps(feeBps)})',
                           value: formatMinor(fee),
                         ),
                         KeyValueRow(
-                          label: 'Total to repay',
+                          label: 'You repay',
                           value: formatMinor(repayable),
                         ),
                         KeyValueRow(
                           label: 'Repayment window',
-                          value: '${offer.maximumRepaymentDays} days',
+                          value:
+                              'Up to '
+                              '${cappedRepaymentDays(offer.maximumRepaymentDays)} '
+                              'days',
                         ),
                         KeyValueRow(
                           label: 'First repayment due',

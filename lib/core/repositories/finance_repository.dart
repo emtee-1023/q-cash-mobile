@@ -57,14 +57,19 @@ class FinanceRepository {
   Future<Offer> createOffer(
     int businessId, {
     required int assessmentId,
+    int? requestedAmountMinor,
     int? feeAmountMinor,
     int? expiresInDays,
   }) async {
-    final res = await _client.post('/businesses/$businessId/offers', data: {
-      'assessment_id': assessmentId,
-      'fee_amount_minor': ?feeAmountMinor,
-      'expires_in_days': ?expiresInDays,
-    });
+    final res = await _client.post(
+      '/businesses/$businessId/offers',
+      data: {
+        'assessment_id': assessmentId,
+        'requested_amount_minor': ?requestedAmountMinor,
+        'fee_amount_minor': ?feeAmountMinor,
+        'expires_in_days': ?expiresInDays,
+      },
+    );
     final data = res.data;
     if (data is Map && data['data'] is Map) {
       return Offer.fromJson(data['data'] as Map<String, dynamic>);
@@ -73,9 +78,10 @@ class FinanceRepository {
   }
 
   Future<Advance> acceptOffer(int offerId, {int? financingPartnerId}) async {
-    final res = await _client.post('/offers/$offerId/accept', data: {
-      'financing_partner_id': ?financingPartnerId,
-    });
+    final res = await _client.post(
+      '/offers/$offerId/accept',
+      data: {'financing_partner_id': ?financingPartnerId},
+    );
     final data = res.data;
     if (data is Map && data['data'] is Map) {
       return Advance.fromJson(data['data'] as Map<String, dynamic>);
@@ -133,13 +139,16 @@ class FinanceRepository {
     required String idempotencyKey,
     required List<Map<String, dynamic>> allocations,
   }) async {
-    final res = await _client.post('/businesses/$businessId/repayments', data: {
-      'collection_method': collectionMethod,
-      'amount_minor': amountMinor,
-      'currency': currency,
-      'idempotency_key': idempotencyKey,
-      'allocations': allocations,
-    });
+    final res = await _client.post(
+      '/businesses/$businessId/repayments',
+      data: {
+        'collection_method': collectionMethod,
+        'amount_minor': amountMinor,
+        'currency': currency,
+        'idempotency_key': idempotencyKey,
+        'allocations': allocations,
+      },
+    );
     final data = res.data;
     if (data is Map && data['data'] is Map) {
       return RepaymentCollection.fromJson(data['data'] as Map<String, dynamic>);
@@ -152,10 +161,10 @@ class FinanceRepository {
     required int amountMinor,
     required String idempotencyKey,
   }) async {
-    final res = await _client.post('/businesses/$businessId/repayments/wallet', data: {
-      'amount_minor': amountMinor,
-      'idempotency_key': idempotencyKey,
-    });
+    final res = await _client.post(
+      '/businesses/$businessId/repayments/wallet',
+      data: {'amount_minor': amountMinor, 'idempotency_key': idempotencyKey},
+    );
     final data = res.data;
     if (data is Map && data['data'] is Map) {
       return RepaymentCollection.fromJson(data['data'] as Map<String, dynamic>);
@@ -168,10 +177,10 @@ class FinanceRepository {
     required String phoneNumber,
     required int amountMinor,
   }) async {
-    final res = await _client.post('/businesses/$businessId/repayments/mpesa', data: {
-      'phone_number': phoneNumber,
-      'amount_minor': amountMinor,
-    });
+    final res = await _client.post(
+      '/businesses/$businessId/repayments/mpesa',
+      data: {'phone_number': phoneNumber, 'amount_minor': amountMinor},
+    );
     return res.data is Map
         ? (res.data['message']?.toString() ?? 'STK push initiated.')
         : 'STK push initiated.';
@@ -186,12 +195,15 @@ class FinanceRepository {
     String? accountReference,
     String? description,
   }) async {
-    final res = await _client.post('/businesses/$businessId/stk-push', data: {
-      'phone_number': phoneNumber,
-      'amount_minor': amountMinor,
-      'account_reference': ?accountReference,
-      'description': ?description,
-    });
+    final res = await _client.post(
+      '/businesses/$businessId/stk-push',
+      data: {
+        'phone_number': phoneNumber,
+        'amount_minor': amountMinor,
+        'account_reference': ?accountReference,
+        'description': ?description,
+      },
+    );
     return res.data is Map
         ? (res.data['message']?.toString() ?? 'STK push initiated.')
         : 'STK push initiated.';

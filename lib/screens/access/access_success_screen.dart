@@ -22,10 +22,6 @@ class AccessSuccessScreen extends ConsumerWidget {
         ),
       );
     }
-    final recommended = access.assessment?.recommendedAdvanceAmountMinor ?? 0;
-    final diff = recommended - advance.principalAmountMinor;
-    final remaining = diff < 0 ? 0 : diff;
-
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -57,7 +53,7 @@ class AccessSuccessScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Your cash advance is on its way to your M-Pesa.',
+                'Your cash advance has been credited to your QCash wallet.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13, color: context.qc.muted),
               ),
@@ -65,8 +61,16 @@ class AccessSuccessScreen extends ConsumerWidget {
               InfoCard(
                 children: [
                   KeyValueRow(
-                    label: 'Advance amount',
+                    label: 'Credited to wallet',
                     value: formatMinor(advance.principalAmountMinor),
+                  ),
+                  KeyValueRow(
+                    label: 'Access fee',
+                    value: formatMinor(advance.feeAmountMinor),
+                  ),
+                  KeyValueRow(
+                    label: 'Total to repay',
+                    value: formatMinor(advance.totalRepayableMinor),
                   ),
                   KeyValueRow(label: 'Reference', value: advance.publicId),
                   KeyValueRow(
@@ -76,10 +80,6 @@ class AccessSuccessScreen extends ConsumerWidget {
                           advance.createdAt ??
                           DateTime.now(),
                     ),
-                  ),
-                  KeyValueRow(
-                    label: 'Remaining available balance',
-                    value: formatMinor(remaining),
                   ),
                 ],
               ),
