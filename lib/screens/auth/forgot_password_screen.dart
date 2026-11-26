@@ -41,9 +41,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           .forgotPassword(phoneNumber: phone);
       if (!mounted) return;
       Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => ResetPasswordScreen(phone: phone),
-        ),
+        MaterialPageRoute(builder: (_) => ResetPasswordScreen(phone: phone)),
       );
     } on ApiException catch (e) {
       _showError(e.readable);
@@ -71,13 +69,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Enter your phone number and we will send you a code '
                       'to reset your password.',
                       style: TextStyle(
                         fontSize: 14,
                         height: 1.4,
-                        color: QcashColors.textGray,
+                        color: context.qc.muted,
                       ),
                     ),
                     const SizedBox(height: 24),

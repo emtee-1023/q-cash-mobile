@@ -79,12 +79,22 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
             otp: _code,
           );
       if (!mounted) return;
+      final authenticated = ref.read(authControllerProvider).isAuthenticated;
+      if (!authenticated) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Phone number verified. Please log in.'),
+          ),
+        );
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Phone number verified. Please log in.')),
+        const SnackBar(content: Text('Phone number verified.')),
       );
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
+      Navigator.of(context).popUntil((route) => route.isFirst);
     } on ApiException catch (e) {
       _showError(e.readable);
     } catch (_) {
@@ -137,7 +147,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        border: Border.all(color: QcashColors.border),
+                        border: Border.all(color: context.qc.border),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(Icons.chevron_left, size: 24),
@@ -155,13 +165,13 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                     const SizedBox(height: 24),
                     Text.rich(
                       TextSpan(
-                        children: const [
+                        children: [
                           TextSpan(
                             text: 'Verify ',
                             style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.w800,
-                              color: QcashColors.navy,
+                              color: context.qc.text,
                             ),
                           ),
                           TextSpan(
@@ -179,10 +189,10 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                     Text(
                       "We've sent a 6-digit code to $display. "
                       'Enter it below to verify your account.',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         height: 1.4,
-                        color: QcashColors.textGray,
+                        color: context.qc.muted,
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -223,24 +233,24 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
           decoration: BoxDecoration(
             color: filled
                 ? QcashColors.green.withValues(alpha: 0.08)
-                : QcashColors.iconBg,
+                : context.qc.card,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: active
                   ? QcashColors.green
                   : filled
                       ? QcashColors.green.withValues(alpha: 0.4)
-                      : QcashColors.border,
+                      : context.qc.border,
               width: active ? 1.6 : 1,
             ),
           ),
           child: Center(
             child: Text(
               filled ? _code[i] : '',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
-                color: QcashColors.navy,
+                color: context.qc.text,
               ),
             ),
           ),
@@ -253,17 +263,17 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text(
+        Text(
           "Didn't get the code? ",
-          style: TextStyle(fontSize: 13.5, color: QcashColors.textGray),
+          style: TextStyle(fontSize: 13.5, color: context.qc.muted),
         ),
         if (_secondsLeft > 0)
           Text(
             'Resend in 0:${_secondsLeft.toString().padLeft(2, '0')}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13.5,
               fontWeight: FontWeight.w600,
-              color: QcashColors.textGray,
+              color: context.qc.muted,
             ),
           )
         else
@@ -328,13 +338,13 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
           child: label != null
               ? Text(
                   label,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w600,
-                    color: QcashColors.navy,
+                    color: context.qc.text,
                   ),
                 )
-              : Icon(icon, size: 24, color: QcashColors.navy),
+              : Icon(icon, size: 24, color: context.qc.text),
         ),
       ),
     );

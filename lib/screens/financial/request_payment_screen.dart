@@ -49,14 +49,18 @@ class _RequestPaymentScreenState extends ConsumerState<RequestPaymentScreen> {
     if (phone == null || amount == null) return;
     setState(() => _busy = true);
     try {
-      final message = await ref.read(financeRepositoryProvider).initiateStkPush(
+      final message = await ref
+          .read(financeRepositoryProvider)
+          .initiateStkPush(
             widget.business.id,
             phoneNumber: phone,
             amountMinor: amount,
           );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message.isEmpty ? 'Payment request sent.' : message)),
+        SnackBar(
+          content: Text(message.isEmpty ? 'Payment request sent.' : message),
+        ),
       );
       Navigator.of(context).pop();
     } on ApiException catch (e) {
@@ -75,7 +79,6 @@ class _RequestPaymentScreenState extends ConsumerState<RequestPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -112,7 +115,8 @@ class _RequestPaymentScreenState extends ConsumerState<RequestPaymentScreen> {
                         hint: '0',
                         controller: _amount,
                         keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
+                          decimal: true,
+                        ),
                         prefixText: 'KES ',
                         onChanged: (_) => setState(() {}),
                         validator: (v) {
@@ -155,7 +159,7 @@ class _RequestPaymentScreenState extends ConsumerState<RequestPaymentScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                border: Border.all(color: QcashColors.border),
+                border: Border.all(color: context.qc.border),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(Icons.chevron_left, size: 24),
@@ -164,13 +168,13 @@ class _RequestPaymentScreenState extends ConsumerState<RequestPaymentScreen> {
           const SizedBox(height: 24),
           Text.rich(
             TextSpan(
-              children: const [
+              children: [
                 TextSpan(
                   text: 'Prompt ',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
-                    color: QcashColors.navy,
+                    color: context.qc.text,
                   ),
                 ),
                 TextSpan(
@@ -185,12 +189,12 @@ class _RequestPaymentScreenState extends ConsumerState<RequestPaymentScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             "Send an M-Pesa payment request straight to your customer's phone.",
             style: TextStyle(
               fontSize: 14,
               height: 1.4,
-              color: QcashColors.textGray,
+              color: context.qc.muted,
             ),
           ),
         ],

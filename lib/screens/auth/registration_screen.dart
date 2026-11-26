@@ -210,7 +210,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                           icon: Icon(
                             _obscure ? Icons.visibility_off : Icons.visibility,
                             size: 20,
-                            color: QcashColors.textGray,
+                            color: context.qc.muted,
                           ),
                           onPressed: () => setState(() => _obscure = !_obscure),
                         ),
@@ -236,9 +236,9 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
+                          Text(
                             'Already have an account?',
-                            style: TextStyle(color: QcashColors.textGray),
+                            style: TextStyle(color: context.qc.muted),
                           ),
                           TextButton(
                             onPressed: () => Navigator.of(context)
@@ -281,7 +281,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                border: Border.all(color: QcashColors.border),
+                border: Border.all(color: context.qc.border),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(Icons.chevron_left, size: 24),
@@ -290,13 +290,13 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
           const SizedBox(height: 24),
           Text.rich(
             TextSpan(
-              children: const [
+              children: [
                 TextSpan(
                   text: 'Create ',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
-                    color: QcashColors.navy,
+                    color: context.qc.text,
                   ),
                 ),
                 TextSpan(
@@ -311,12 +311,12 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Join Q-Cash and receive quick cash advances for your business.',
             style: TextStyle(
               fontSize: 14,
               height: 1.4,
-              color: QcashColors.textGray,
+              color: context.qc.muted,
             ),
           ),
         ],
@@ -330,14 +330,14 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(left: 4, bottom: 8),
             child: Text(
               'Date of Birth',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: QcashColors.navy,
+                color: context.qc.text,
               ),
             ),
           ),
@@ -348,14 +348,13 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
             onTap: _pickDob,
             decoration: InputDecoration(
               hintText: 'Select date',
-              suffixIcon: const Icon(
+              suffixIcon: Icon(
                 Icons.calendar_today_outlined,
                 size: 18,
-                color: QcashColors.textGray,
+                color: context.qc.muted,
               ),
             ),
-            validator: (_) =>
-                _dob == null ? 'Date of birth is required' : null,
+            validator: (_) => _dob == null ? 'Date of birth is required' : null,
           ),
         ],
       ),

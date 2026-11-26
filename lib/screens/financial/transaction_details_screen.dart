@@ -27,7 +27,7 @@ class TransactionDetailsScreen extends StatelessWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     decoration: BoxDecoration(
-                      color: QcashColors.iconBg,
+                      color: context.qc.card,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
@@ -37,7 +37,9 @@ class TransactionDetailsScreen extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 30,
                             fontWeight: FontWeight.w800,
-                            color: t.isInflow ? QcashColors.green : QcashColors.navy,
+                            color: t.isInflow
+                                ? QcashColors.green
+                                : context.qc.text,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -69,7 +71,9 @@ class TransactionDetailsScreen extends StatelessWidget {
                       ),
                       KeyValueRow(
                         label: 'Type',
-                        value: t.transactionType ?? (t.isInflow ? 'Income' : 'Outflow'),
+                        value:
+                            t.transactionType ??
+                            (t.isInflow ? 'Income' : 'Outflow'),
                       ),
                       KeyValueRow(
                         label: 'Status',
@@ -77,8 +81,11 @@ class TransactionDetailsScreen extends StatelessWidget {
                       ),
                       KeyValueRow(
                         label: 'Related Account',
-                        value: t.counterpartyReference ??
-                            (t.paymentAccountId != null ? 'Account ${t.paymentAccountId}' : '—'),
+                        value:
+                            t.counterpartyReference ??
+                            (t.paymentAccountId != null
+                                ? 'Account ${t.paymentAccountId}'
+                                : '—'),
                       ),
                     ],
                   ),

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api/api_client.dart';
 import '../../core/format.dart';
-import '../../core/models/business.dart';
 import '../../core/models/business_type.dart';
 import '../../core/models/location.dart';
 import '../../core/providers/business_providers.dart';
@@ -11,10 +10,11 @@ import '../../theme/app_theme.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_field.dart';
 import '../../widgets/phone_field.dart';
-import 'mpesa_connection_screen.dart';
 
 class BusinessRegistrationScreen extends ConsumerStatefulWidget {
-  const BusinessRegistrationScreen({super.key});
+  const BusinessRegistrationScreen({super.key, this.isOnboarding = true});
+
+  final bool isOnboarding;
 
   @override
   ConsumerState<BusinessRegistrationScreen> createState() =>
@@ -83,7 +83,10 @@ class _BusinessRegistrationScreenState
           'physical_address': _address.text.trim(),
       });
       if (!mounted) return;
-      _goToMpesa(business);
+      ref.read(selectedBusinessIdProvider.notifier).select(business.id);
+      if (!widget.isOnboarding) {
+        Navigator.of(context).pop();
+      }
     } on ApiException catch (e) {
       _showError(e.readable);
     } catch (_) {
@@ -91,14 +94,6 @@ class _BusinessRegistrationScreenState
     } finally {
       if (mounted) setState(() => _busy = false);
     }
-  }
-
-  void _goToMpesa(Business business) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => MpesaConnectionScreen(business: business),
-      ),
-    );
   }
 
   void _showError(String message) {
@@ -242,7 +237,9 @@ class _BusinessRegistrationScreenState
                       ),
                       const SizedBox(height: 8),
                       PrimaryButton(
-                        label: 'Continue',
+                        label: widget.isOnboarding
+                            ? 'Continue'
+                            : 'Add Business',
                         color: QcashColors.green,
                         onPressed: _busy ? null : _submit,
                       ),
@@ -270,7 +267,7 @@ class _BusinessRegistrationScreenState
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                border: Border.all(color: QcashColors.border),
+                border: Border.all(color: context.qc.border),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(Icons.chevron_left, size: 24),
@@ -279,17 +276,17 @@ class _BusinessRegistrationScreenState
           const SizedBox(height: 24),
           Text.rich(
             TextSpan(
-              children: const [
+              children: [
                 TextSpan(
-                  text: 'Business ',
+                  text: widget.isOnboarding ? 'Business ' : 'Add ',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
-                    color: QcashColors.navy,
+                    color: context.qc.text,
                   ),
                 ),
                 TextSpan(
-                  text: 'Details',
+                  text: widget.isOnboarding ? 'Details' : 'Business',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
@@ -300,12 +297,14 @@ class _BusinessRegistrationScreenState
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Tell us a little about your business so we can set you up.',
+          Text(
+            widget.isOnboarding
+                ? 'Tell us a little about your business so we can set you up.'
+                : 'Add another business to manage separately on Q-Cash.',
             style: TextStyle(
               fontSize: 14,
               height: 1.4,
-              color: QcashColors.textGray,
+              color: context.qc.muted,
             ),
           ),
         ],
@@ -323,12 +322,12 @@ class _BusinessRegistrationScreenState
         decoration: BoxDecoration(
           color: enabled
               ? QcashColors.green.withValues(alpha: 0.08)
-              : QcashColors.iconBg,
+              : context.qc.card,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: enabled
                 ? QcashColors.green.withValues(alpha: 0.4)
-                : QcashColors.border,
+                : context.qc.border,
           ),
         ),
         child: Row(
@@ -339,13 +338,13 @@ class _BusinessRegistrationScreenState
               decoration: BoxDecoration(
                 color: enabled
                     ? QcashColors.green.withValues(alpha: 0.15)
-                    : QcashColors.border.withValues(alpha: 0.6),
+                    : context.qc.border.withValues(alpha: 0.6),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 Icons.location_on_outlined,
                 size: 18,
-                color: enabled ? QcashColors.green : QcashColors.textGray,
+                color: enabled ? QcashColors.green : context.qc.muted,
               ),
             ),
             const SizedBox(width: 12),
@@ -353,12 +352,12 @@ class _BusinessRegistrationScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Physical location',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: QcashColors.navy,
+                      color: context.qc.text,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -366,7 +365,7 @@ class _BusinessRegistrationScreenState
                     'Add your county, ward and address',
                     style: TextStyle(
                       fontSize: 12,
-                      color: enabled ? QcashColors.green : QcashColors.textGray,
+                      color: enabled ? QcashColors.green : context.qc.muted,
                     ),
                   ),
                 ],

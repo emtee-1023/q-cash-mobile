@@ -36,9 +36,9 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
       case 1:
         break;
       case 2:
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const AccessRevenueScreen()),
-        );
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const AccessRevenueScreen()));
         break;
       case 3:
         Navigator.of(context).pushReplacement(
@@ -59,7 +59,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
     final all = business == null
         ? const <Transaction>[]
         : ref.watch(transactionsProvider(business.id)).value ??
-            const <Transaction>[];
+              const <Transaction>[];
 
     final filtered = switch (_filter) {
       1 => all.where((t) => t.isInflow).toList(),
@@ -83,9 +83,11 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                       onTap: () => setState(() => _filter = i),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
-                          color: active ? QcashColors.navy : QcashColors.iconBg,
+                          color: active ? QcashColors.navy : context.qc.card,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -93,7 +95,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: active ? Colors.white : QcashColors.navy,
+                            color: active ? Colors.white : context.qc.text,
                           ),
                         ),
                       ),
@@ -105,17 +107,17 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
             const SizedBox(height: 8),
             Expanded(
               child: filtered.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Text(
                         'No transactions yet.',
-                        style: TextStyle(color: QcashColors.textGray),
+                        style: TextStyle(color: context.qc.muted),
                       ),
                     )
                   : ListView.separated(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       itemCount: filtered.length,
                       separatorBuilder: (_, _) =>
-                          const Divider(height: 1, color: QcashColors.divider),
+                          Divider(height: 1, color: context.qc.divider),
                       itemBuilder: (context, i) => _tile(context, filtered[i]),
                     ),
             ),
@@ -128,7 +130,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
 
   Widget _tile(BuildContext context, Transaction t) {
     return TransactionTile(
-      title: t.counterpartyName ??
+      title:
+          t.counterpartyName ??
           (t.isInflow ? 'Paybill Deposit' : (t.transactionType ?? 'Outflow')),
       subtitle: formatDate(t.transactionTime, withTime: true),
       amount: formatMinorAmount(t.amountMinor),

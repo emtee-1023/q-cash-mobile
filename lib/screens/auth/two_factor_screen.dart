@@ -23,7 +23,9 @@ class _TwoFactorScreenState extends ConsumerState<TwoFactorScreen> {
   Future<void> _verify() async {
     setState(() => _busy = true);
     try {
-      await ref.read(authControllerProvider.notifier).verifyTwoFactor(otp: _code);
+      await ref
+          .read(authControllerProvider.notifier)
+          .verifyTwoFactor(otp: _code);
       if (!mounted) return;
       Navigator.of(context).popUntil((route) => route.isFirst);
     } on ApiException catch (e) {
@@ -38,10 +40,9 @@ class _TwoFactorScreenState extends ConsumerState<TwoFactorScreen> {
   Future<void> _resend() async {
     final challenge = ref.read(authControllerProvider).challengeToken;
     try {
-      await ref.read(authControllerProvider.notifier).resendOtp(
-            purpose: 'two_factor',
-            challengeToken: challenge,
-          );
+      await ref
+          .read(authControllerProvider.notifier)
+          .resendOtp(purpose: 'two_factor', challengeToken: challenge);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('A new code has been sent.')),
@@ -65,12 +66,15 @@ class _TwoFactorScreenState extends ConsumerState<TwoFactorScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const ScreenHeader(title: 'Two-Factor Verification', showBack: true),
+              const ScreenHeader(
+                title: 'Two-Factor Verification',
+                showBack: true,
+              ),
               const SizedBox(height: 16),
-              const Center(
+              Center(
                 child: Text(
                   'Enter the code sent to your phone.',
-                  style: TextStyle(fontSize: 14, color: QcashColors.textGray),
+                  style: TextStyle(fontSize: 14, color: context.qc.muted),
                 ),
               ),
               const SizedBox(height: 28),
@@ -90,10 +94,7 @@ class _TwoFactorScreenState extends ConsumerState<TwoFactorScreen> {
                 ),
               ),
               const Spacer(),
-              PrimaryButton(
-                label: 'Verify',
-                onPressed: _busy ? null : _verify,
-              ),
+              PrimaryButton(label: 'Verify', onPressed: _busy ? null : _verify),
               const SizedBox(height: 24),
             ],
           ),

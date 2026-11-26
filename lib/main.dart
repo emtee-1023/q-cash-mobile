@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/providers/auth_providers.dart';
 import 'core/providers/providers.dart';
+import 'core/providers/theme_providers.dart';
 import 'screens/home/app_home.dart';
 import 'theme/app_theme.dart';
 
@@ -73,6 +74,8 @@ class _QcashAppState extends ConsumerState<QcashApp> {
       title: 'QCash',
       debugShowCheckedModeBanner: false,
       theme: buildQcashTheme(),
+      darkTheme: buildQcashDarkTheme(),
+      themeMode: ref.watch(themeModeProvider),
       home: const AppHome(),
     );
   }

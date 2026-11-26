@@ -54,13 +54,17 @@ class _AccessConfirmationScreenState
     final offer = ref.watch(accessControllerProvider).offer;
     if (offer == null) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator(color: QcashColors.green)),
+        body: Center(
+          child: CircularProgressIndicator(color: QcashColors.green),
+        ),
       );
     }
     final received = offer.offeredAmountMinor;
     final fee = offer.feeAmountMinor;
     final repayable = offer.totalRepayableMinor;
-    final dueDate = offer.offeredAt.add(Duration(days: offer.maximumRepaymentDays));
+    final dueDate = offer.offeredAt.add(
+      Duration(days: offer.maximumRepaymentDays),
+    );
 
     return Scaffold(
       body: SafeArea(
@@ -86,20 +90,25 @@ class _AccessConfirmationScreenState
                     InfoCard(
                       children: [
                         KeyValueRow(
-                            label: 'Advance amount',
-                            value: formatMinor(received)),
+                          label: 'Advance amount',
+                          value: formatMinor(received),
+                        ),
                         KeyValueRow(
-                            label: 'Processing fee', value: formatMinor(fee)),
+                          label: 'Processing fee',
+                          value: formatMinor(fee),
+                        ),
                         KeyValueRow(
-                            label: 'Total to repay',
-                            value: formatMinor(repayable)),
+                          label: 'Total to repay',
+                          value: formatMinor(repayable),
+                        ),
                         KeyValueRow(
                           label: 'Repayment window',
                           value: '${offer.maximumRepaymentDays} days',
                         ),
                         KeyValueRow(
-                            label: 'First repayment due',
-                            value: formatDate(dueDate)),
+                          label: 'First repayment due',
+                          value: formatDate(dueDate),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -136,7 +145,7 @@ class _AccessConfirmationScreenState
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                border: Border.all(color: QcashColors.border),
+                border: Border.all(color: context.qc.border),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(Icons.chevron_left, size: 24),
@@ -145,13 +154,13 @@ class _AccessConfirmationScreenState
           const SizedBox(height: 24),
           Text.rich(
             TextSpan(
-              children: const [
+              children: [
                 TextSpan(
                   text: 'Confirm ',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
-                    color: QcashColors.navy,
+                    color: context.qc.text,
                   ),
                 ),
                 TextSpan(
@@ -166,12 +175,12 @@ class _AccessConfirmationScreenState
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Review the terms of your cash advance before you accept.',
             style: TextStyle(
               fontSize: 14,
               height: 1.4,
-              color: QcashColors.textGray,
+              color: context.qc.muted,
             ),
           ),
         ],
@@ -215,8 +224,7 @@ class _AccessConfirmationScreenState
               ),
               const Spacer(),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: QcashColors.green,
                   borderRadius: BorderRadius.circular(6),

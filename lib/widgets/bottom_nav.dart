@@ -40,9 +40,9 @@ class BottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 96,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
+      decoration: BoxDecoration(
+        color: context.qc.surface,
+        boxShadow: const [
           BoxShadow(
             color: Color(0x0A9CA3AF),
             offset: Offset(0, -12),
@@ -54,7 +54,9 @@ class BottomNavBar extends StatelessWidget {
         children: List.generate(_labels.length, (index) {
           final isCenter = index == 2;
           return Expanded(
-            child: isCenter ? _centerFab(context) : _item(context, index),
+            child: isCenter
+                ? _centerFab(context, () => onTap(index))
+                : _item(context, index),
           );
         }),
       ),
@@ -71,7 +73,7 @@ class BottomNavBar extends StatelessWidget {
           Icon(
             active ? _activeIcons[index] : _icons[index],
             size: 24,
-            color: active ? QcashColors.navy : QcashColors.textGray,
+            color: active ? context.qc.text : context.qc.muted,
           ),
           const SizedBox(height: 4),
           Text(
@@ -79,7 +81,7 @@ class BottomNavBar extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-              color: active ? QcashColors.navy : QcashColors.textGray,
+              color: active ? context.qc.text : context.qc.muted,
             ),
           ),
         ],
@@ -87,38 +89,41 @@ class BottomNavBar extends StatelessWidget {
     );
   }
 
-  Widget _centerFab(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Transform.translate(
-          offset: const Offset(0, -6),
-          child: Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: QcashColors.green,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: QcashColors.green.withValues(alpha: 0.3),
-                  offset: const Offset(0, 6),
-                  blurRadius: 12,
-                ),
-              ],
+  Widget _centerFab(BuildContext context, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Transform.translate(
+            offset: const Offset(0, -6),
+            child: Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: QcashColors.green,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: QcashColors.green.withValues(alpha: 0.3),
+                    offset: const Offset(0, 6),
+                    blurRadius: 12,
+                  ),
+                ],
+              ),
+              child: const Icon(Icons.south, color: Colors.white, size: 26),
             ),
-            child: const Icon(Icons.south, color: Colors.white, size: 26),
           ),
-        ),
-        const Text(
-          'Access',
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
-            color: QcashColors.textGray,
+          Text(
+            'Access',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: context.qc.muted,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

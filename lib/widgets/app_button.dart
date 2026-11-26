@@ -40,22 +40,23 @@ class OutlineButton extends StatelessWidget {
     super.key,
     required this.label,
     required this.onPressed,
-    this.color = QcashColors.navy,
+    this.color,
     this.expanded = true,
   });
 
   final String label;
   final VoidCallback? onPressed;
-  final Color color;
+  final Color? color;
   final bool expanded;
 
   @override
   Widget build(BuildContext context) {
+    final resolved = color ?? context.qc.text;
     final button = OutlinedButton(
       style: OutlinedButton.styleFrom(
-        foregroundColor: color,
+        foregroundColor: resolved,
         minimumSize: const Size.fromHeight(56),
-        side: BorderSide(color: color, width: 1.5),
+        side: BorderSide(color: resolved, width: 1.5),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
       ),

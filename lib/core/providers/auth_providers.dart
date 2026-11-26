@@ -67,7 +67,11 @@ class AuthController extends Notifier<AuthState> {
           phoneNumber: phoneNumber,
           otp: otp,
         );
-    state = state.copyWith(clearPendingPhone: true);
+    state = state.copyWith(
+      token: ref.read(apiClientProvider).token,
+      clearPendingPhone: true,
+      clearChallenge: true,
+    );
     return message;
   }
 

@@ -13,10 +13,10 @@ class SectionLabel extends StatelessWidget {
       padding: const EdgeInsets.only(left: 4, bottom: 10, top: 4),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w600,
-          color: QcashColors.navy,
+          color: context.qc.text,
         ),
       ),
     );
@@ -51,7 +51,7 @@ class StatCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: highlight ? hl : QcashColors.iconBg,
+        color: highlight ? hl : context.qc.card,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -85,7 +85,7 @@ class StatCard extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                     color: highlight
                         ? Colors.white.withValues(alpha: 0.9)
-                        : QcashColors.textGray,
+                        : context.qc.muted,
                   ),
                 ),
               ),
@@ -97,7 +97,7 @@ class StatCard extends StatelessWidget {
             style: TextStyle(
               fontSize: isLarge ? 24 : 17,
               fontWeight: FontWeight.w800,
-              color: highlight ? Colors.white : QcashColors.navy,
+              color: highlight ? Colors.white : context.qc.text,
             ),
           ),
         ],
@@ -127,10 +127,7 @@ class KeyValueRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 14, color: QcashColors.textGray),
-          ),
+          Text(label, style: TextStyle(fontSize: 14, color: context.qc.muted)),
           const SizedBox(width: 16),
           Expanded(
             child: Text(
@@ -139,7 +136,7 @@ class KeyValueRow extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: valueWeight,
-                color: valueColor ?? QcashColors.navy,
+                color: valueColor ?? context.qc.text,
               ),
             ),
           ),
@@ -165,7 +162,7 @@ class InfoCard extends StatelessWidget {
       width: double.infinity,
       padding: padding,
       decoration: BoxDecoration(
-        color: QcashColors.iconBg,
+        color: context.qc.card,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(children: children),
@@ -201,13 +198,13 @@ class TransactionTile extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: QcashColors.iconBg,
+                color: context.qc.card,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 positive ? Icons.south_west : Icons.north_east,
                 size: 18,
-                color: positive ? QcashColors.green : QcashColors.navy,
+                color: positive ? QcashColors.green : context.qc.text,
               ),
             ),
             const SizedBox(width: 12),
@@ -217,19 +214,16 @@ class TransactionTile extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: QcashColors.navy,
+                      color: context.qc.text,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: QcashColors.textGray,
-                    ),
+                    style: TextStyle(fontSize: 12, color: context.qc.muted),
                   ),
                 ],
               ),
@@ -239,7 +233,7 @@ class TransactionTile extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: positive ? QcashColors.green : QcashColors.navy,
+                color: positive ? QcashColors.green : context.qc.text,
               ),
             ),
           ],
@@ -272,7 +266,9 @@ class CalloutBox extends StatelessWidget {
         border: Border.all(color: QcashColors.green.withValues(alpha: 0.25)),
       ),
       child: Row(
-        mainAxisAlignment: centered ? MainAxisAlignment.center : MainAxisAlignment.start,
+        mainAxisAlignment: centered
+            ? MainAxisAlignment.center
+            : MainAxisAlignment.start,
         children: [
           if (icon != null) ...[
             Icon(icon, size: 18, color: QcashColors.green),
@@ -282,9 +278,9 @@ class CalloutBox extends StatelessWidget {
             child: Text(
               text,
               textAlign: centered ? TextAlign.center : TextAlign.start,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12.5,
-                color: QcashColors.navy,
+                color: context.qc.text,
                 height: 1.35,
               ),
             ),

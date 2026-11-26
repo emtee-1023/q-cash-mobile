@@ -32,9 +32,9 @@ class ProfileScreen extends ConsumerWidget {
         );
         break;
       case 2:
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const AccessRevenueScreen()),
-        );
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const AccessRevenueScreen()));
         break;
       case 3:
         Navigator.of(context).pushReplacement(
@@ -80,10 +80,10 @@ class ProfileScreen extends ConsumerWidget {
                     Center(
                       child: Text(
                         user?.name ?? 'Loading…',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: QcashColors.navy,
+                          color: context.qc.text,
                         ),
                       ),
                     ),
@@ -95,10 +95,7 @@ class ProfileScreen extends ConsumerWidget {
                           label: 'Phone',
                           value: formatKenyanPhone(user?.phoneNumber),
                         ),
-                        KeyValueRow(
-                          label: 'Email',
-                          value: user?.email ?? '—',
-                        ),
+                        KeyValueRow(label: 'Email', value: user?.email ?? '—'),
                         KeyValueRow(
                           label: 'ID Type',
                           value: _idTypeLabel(user?.idType),
@@ -130,22 +127,27 @@ class ProfileScreen extends ConsumerWidget {
                     const SizedBox(height: 16),
                     OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: QcashColors.navy,
+                        foregroundColor: context.qc.text,
                         minimumSize: const Size.fromHeight(52),
-                        side: const BorderSide(color: QcashColors.border),
+                        side: BorderSide(color: context.qc.border),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
                       onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const SettingsScreen(),
+                        ),
                       ),
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.settings_outlined, size: 20),
                           SizedBox(width: 8),
-                          Text('Settings', style: TextStyle(fontWeight: FontWeight.w600)),
+                          Text(
+                            'Settings',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
                         ],
                       ),
                     ),
@@ -165,14 +167,14 @@ class ProfileScreen extends ConsumerWidget {
     final email = user?.email;
     final verified = user?.isEmailVerified ?? false;
     return InkWell(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const EditEmailScreen()),
-      ),
+      onTap: () =>
+          Navigator.of(context)
+              .push(MaterialPageRoute(builder: (_) => const EditEmailScreen())),
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: QcashColors.iconBg,
+          color: context.qc.card,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -187,7 +189,9 @@ class ProfileScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
-                verified ? Icons.mark_email_read_outlined : Icons.mark_email_unread_outlined,
+                verified
+                    ? Icons.mark_email_read_outlined
+                    : Icons.mark_email_unread_outlined,
                 size: 20,
                 color: verified ? QcashColors.green : QcashColors.orange,
               ),
@@ -199,14 +203,17 @@ class ProfileScreen extends ConsumerWidget {
                 children: [
                   Text(
                     email ?? 'Add your email',
-                    style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: QcashColors.navy),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: context.qc.text,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    verified ? 'Email verified' : 'Not verified — tap to verify',
+                    verified
+                        ? 'Email verified'
+                        : 'Not verified — tap to verify',
                     style: TextStyle(
                       fontSize: 12,
                       color: verified ? QcashColors.green : QcashColors.orange,
@@ -215,7 +222,7 @@ class ProfileScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: QcashColors.textGray),
+            Icon(Icons.chevron_right, color: context.qc.muted),
           ],
         ),
       ),

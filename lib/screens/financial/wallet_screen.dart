@@ -16,12 +16,15 @@ class WalletScreen extends ConsumerWidget {
     final business = ref.watch(currentBusinessProvider);
     if (business == null) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator(color: QcashColors.green)),
+        body: Center(
+          child: CircularProgressIndicator(color: QcashColors.green),
+        ),
       );
     }
     final walletAsync = ref.watch(walletProvider(business.id));
     final withdrawals =
-        ref.watch(withdrawalsProvider(business.id)).value ?? const <Withdrawal>[];
+        ref.watch(withdrawalsProvider(business.id)).value ??
+        const <Withdrawal>[];
 
     final balanceText = walletAsync.when(
       data: (wallet) => formatMinor(wallet.balanceMinor),
@@ -59,9 +62,9 @@ class WalletScreen extends ConsumerWidget {
                       const SizedBox(height: 24),
                       const SectionLabel('Withdrawal History'),
                       if (withdrawals.isEmpty)
-                        _emptyState()
+                        _emptyState(context)
                       else
-                        ...withdrawals.map((w) => _withdrawalTile(w)),
+                        ...withdrawals.map((w) => _withdrawalTile(context, w)),
                       const SizedBox(height: 12),
                     ],
                   ),
@@ -86,7 +89,7 @@ class WalletScreen extends ConsumerWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                border: Border.all(color: QcashColors.border),
+                border: Border.all(color: context.qc.border),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(Icons.chevron_left, size: 24),
@@ -95,13 +98,13 @@ class WalletScreen extends ConsumerWidget {
           const SizedBox(height: 24),
           Text.rich(
             TextSpan(
-              children: const [
+              children: [
                 TextSpan(
                   text: 'Business ',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
-                    color: QcashColors.navy,
+                    color: context.qc.text,
                   ),
                 ),
                 TextSpan(
@@ -116,12 +119,12 @@ class WalletScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Keep an eye on your balance and cash out to M-Pesa anytime.',
             style: TextStyle(
               fontSize: 14,
               height: 1.4,
-              color: QcashColors.textGray,
+              color: context.qc.muted,
             ),
           ),
         ],
@@ -153,8 +156,11 @@ class WalletScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.account_balance_wallet,
-                  color: Colors.white, size: 18),
+              const Icon(
+                Icons.account_balance_wallet,
+                color: Colors.white,
+                size: 18,
+              ),
               const SizedBox(width: 8),
               const Text(
                 'Available Balance',
@@ -166,8 +172,7 @@ class WalletScreen extends ConsumerWidget {
               ),
               const Spacer(),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(6),
@@ -194,9 +199,9 @@ class WalletScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 18),
           InkWell(
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const WithdrawScreen()),
-            ),
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const WithdrawScreen())),
             borderRadius: BorderRadius.circular(14),
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 13),
@@ -226,7 +231,7 @@ class WalletScreen extends ConsumerWidget {
     );
   }
 
-  Widget _emptyState() {
+  Widget _emptyState(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 28),
       child: Column(
@@ -235,39 +240,38 @@ class WalletScreen extends ConsumerWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: QcashColors.iconBg,
+              color: context.qc.card,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Icon(Icons.receipt_long_outlined,
-                color: QcashColors.textGray),
+            child: Icon(Icons.receipt_long_outlined, color: context.qc.muted),
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'No withdrawals yet',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: QcashColors.navy,
+              color: context.qc.text,
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'Your cash-outs to M-Pesa will show up here.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: QcashColors.textGray),
+            style: TextStyle(fontSize: 12, color: context.qc.muted),
           ),
         ],
       ),
     );
   }
 
-  Widget _withdrawalTile(Withdrawal w) {
+  Widget _withdrawalTile(BuildContext context, Withdrawal w) {
     final color = _statusColor(w.status);
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: QcashColors.iconBg,
+        color: context.qc.card,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -288,19 +292,16 @@ class WalletScreen extends ConsumerWidget {
               children: [
                 Text(
                   formatMinor(w.amountMinor),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: QcashColors.navy,
+                    color: context.qc.text,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   'To ${formatKenyanPhone(w.recipientPhoneNumber)}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: QcashColors.textGray,
-                  ),
+                  style: TextStyle(fontSize: 12, color: context.qc.muted),
                 ),
               ],
             ),
@@ -309,8 +310,7 @@ class WalletScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(6),
@@ -327,10 +327,7 @@ class WalletScreen extends ConsumerWidget {
               const SizedBox(height: 4),
               Text(
                 formatDate(w.requestedAt),
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: QcashColors.textGray,
-                ),
+                style: TextStyle(fontSize: 11, color: context.qc.muted),
               ),
             ],
           ),

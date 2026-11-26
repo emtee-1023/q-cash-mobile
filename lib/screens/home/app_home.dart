@@ -63,7 +63,7 @@ class _HomeGate extends ConsumerWidget {
             child: Text(
               'Could not load your businesses.\n${error.toString()}',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: QcashColors.textGray),
+              style: TextStyle(color: context.qc.muted),
             ),
           ),
         ),

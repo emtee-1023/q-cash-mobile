@@ -17,7 +17,9 @@ class AccessSuccessScreen extends ConsumerWidget {
     final advance = access.advance;
     if (advance == null) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator(color: QcashColors.green)),
+        body: Center(
+          child: CircularProgressIndicator(color: QcashColors.green),
+        ),
       );
     }
     final recommended = access.assessment?.recommendedAdvanceAmountMinor ?? 0;
@@ -44,20 +46,20 @@ class AccessSuccessScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 'Advance Successful',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: QcashColors.navy,
+                  color: context.qc.text,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Your cash advance is on its way to your M-Pesa.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: QcashColors.textGray),
+                style: TextStyle(fontSize: 13, color: context.qc.muted),
               ),
               const SizedBox(height: 24),
               InfoCard(
@@ -69,7 +71,11 @@ class AccessSuccessScreen extends ConsumerWidget {
                   KeyValueRow(label: 'Reference', value: advance.publicId),
                   KeyValueRow(
                     label: 'Date',
-                    value: formatDate(advance.disbursedAt ?? advance.createdAt ?? DateTime.now()),
+                    value: formatDate(
+                      advance.disbursedAt ??
+                          advance.createdAt ??
+                          DateTime.now(),
+                    ),
                   ),
                   KeyValueRow(
                     label: 'Remaining available balance',

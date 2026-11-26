@@ -12,6 +12,14 @@ final transactionsProvider = FutureProvider.autoDispose
   return ref.watch(financeRepositoryProvider).listTransactions(businessId);
 });
 
+/// A wider transaction history used for client-side analytics charts.
+final analyticsTransactionsProvider = FutureProvider.autoDispose
+    .family<List<Transaction>, int>((ref, businessId) async {
+  return ref
+      .watch(financeRepositoryProvider)
+      .listTransactions(businessId, perPage: 500);
+});
+
 final advancesProvider = FutureProvider.autoDispose
     .family<List<Advance>, int>((ref, businessId) async {
   return ref.watch(financeRepositoryProvider).listAdvances(businessId);

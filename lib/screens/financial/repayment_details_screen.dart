@@ -28,12 +28,28 @@ class RepaymentDetailsScreen extends StatelessWidget {
                       children: [
                         KeyValueRow(label: 'Advance', value: a.publicId),
                         KeyValueRow(
-                          label: 'Original Amount',
+                          label: 'Principal',
                           value: formatMinor(a.principalAmountMinor),
+                        ),
+                        KeyValueRow(
+                          label: 'Access Fee',
+                          value: formatMinor(a.feeAmountMinor),
+                        ),
+                        KeyValueRow(
+                          label: 'Total Repayable',
+                          value: formatMinor(a.totalRepayableMinor),
                         ),
                         KeyValueRow(
                           label: 'Amount Repaid',
                           value: formatMinor(a.amountRepaidMinor),
+                        ),
+                        KeyValueRow(
+                          label: 'Principal Repaid',
+                          value: formatMinor(a.principalRepaidMinor),
+                        ),
+                        KeyValueRow(
+                          label: 'Fee Repaid',
+                          value: formatMinor(a.feeRepaidMinor),
                         ),
                         KeyValueRow(
                           label: 'Remaining',

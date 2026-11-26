@@ -33,18 +33,21 @@ class ScreenHeader extends StatelessWidget {
             child: Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
-                color: QcashColors.navy,
+                color: context.qc.text,
               ),
             ),
           ),
           if (showBell)
             _HeaderIconButton(
               onTap: null,
-              child: const Icon(Icons.notifications_none,
-                  size: 20, color: QcashColors.navy),
+              child: Icon(
+                Icons.notifications_none,
+                size: 20,
+                color: context.qc.text,
+              ),
             )
           else if (trailing != null)
             trailing!
@@ -70,7 +73,7 @@ class _HeaderIconButton extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          border: Border.all(color: QcashColors.border),
+          border: Border.all(color: context.qc.border),
           borderRadius: BorderRadius.circular(12),
         ),
         child: child,
